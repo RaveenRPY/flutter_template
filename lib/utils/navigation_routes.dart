@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../features/presentation/views/sample/sample_view.dart';
+import '../features/presentation/views/home/home_view.dart';
 import 'app_colors.dart';
 import 'app_stylings.dart';
 
 class Routes {
   static const String kSampleView = "kSampleView";
+  static const String kSaleView = "kSaleView";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     Widget page;
     switch (settings.name) {
       case Routes.kSampleView:
         page = const SampleView();
+        break;
+      case Routes.kSaleView:
+        page = const SaleView();
         break;
       default:
         page = Scaffold(

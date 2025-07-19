@@ -1,4 +1,4 @@
-name: 'PROJECT_NAME'
+name: 'AventaPOS'
 description: "A new Flutter project template."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -32,6 +32,13 @@ dependencies:
   dartz: ^0.10.1
   intl: ^0.19.0
   lottie: ^3.3.1
+  hugeicons: ^0.0.11
+  flutter_svg: ^2.2.0
+  google_fonts: ^6.2.1
+  font_awesome_flutter: ^10.8.0
+  lucide_icons: ^0.257.0
+  syncfusion_flutter_datagrid: ^30.1.38
+  dropdown_flutter: ^1.0.1
 
 dependency_overrides:
   intl: ^0.20.2
@@ -47,8 +54,8 @@ flutter:
 
   assets:
     - assets/animations/lottie/
-#    - assets/images/png/
-#    - assets/images/jpg/
+    - assets/images/svg/
+    - assets/images/jpg/
 
 #  fonts:
 #    - family: Poppins

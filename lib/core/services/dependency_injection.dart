@@ -12,6 +12,7 @@ import '../../features/data/repositories/repository_impl.dart';
 import '../../features/domain/respositories/repository.dart';
 import '../../features/domain/usecases/sample/sample.dart';
 import '../../features/presentation/bloc/sample/sample_bloc.dart';
+import '../../features/presentation/bloc/sale/sale_bloc.dart';
 import 'api_helper.dart';
 import '../network/network_info.dart';
 
@@ -22,46 +23,55 @@ Future<void> setupLocator() async {
   final PackageInfo packageInfo = await PackageInfo.fromPlatform();
   const flutterSecureStorage = FlutterSecureStorage();
 
+  // Core Services
   inject.registerSingleton(DeviceInfoPlugin());
-
   inject.registerLazySingleton(() => sharedPreferences);
   inject.registerLazySingleton(() => packageInfo);
   inject.registerLazySingleton(() => flutterSecureStorage);
 
+  // Network Services
+  inject.registerSingleton(Dio());
+  inject.registerLazySingleton(() => Connectivity());
+  inject.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(inject()));
+
+  // Data Sources
   inject.registerLazySingleton<LocalDatasource>(
     () => LocalDatasource(
       securePreferences: inject(),
       sharedPreferences: inject(),
     ),
   );
+  
   inject.registerLazySingleton<RemoteDataSource>(
     () => RemoteDataSourceImpl(apiHelper: inject()),
   );
 
-  inject.registerSingleton(Dio());
+  // API Helper
   inject.registerLazySingleton<APIHelper>(
     () => APIHelper(
       dio: inject(),
       localDatasource: inject(),
     ),
   );
-  inject.registerLazySingleton(() => Connectivity());
-  inject.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(inject()));
 
-  /// Repository
+  // Repository
   inject.registerLazySingleton<Repository>(
     () => RepositoryImpl(remoteDataSource: inject(), networkInfo: inject()),
   );
 
-  /// UseCases
+  // Use Cases
   inject.registerLazySingleton(
     () => SampleUseCase(repository: inject()),
   );
 
-  /// Blocs
+  // BLoCs - Using Factory for stateful BLoCs
   inject.registerFactory(
     () => SampleBloc(
-      sampleUseCase: SampleUseCase(),
+      sampleUseCase: inject<SampleUseCase>(),
     ),
+  );
+
+  inject.registerFactory(
+    () => SaleBloc(),
   );
 }

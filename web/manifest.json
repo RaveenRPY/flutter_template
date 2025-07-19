@@ -1,6 +1,6 @@
 {
-    "name": "{PROJECT_NAME}",
-    "short_name": "{PROJECT_NAME}",
+    "name": "AventaPOS",
+    "short_name": "AventaPOS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

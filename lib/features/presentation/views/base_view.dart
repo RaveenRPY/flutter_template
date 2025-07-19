@@ -23,63 +23,58 @@ abstract class BaseViewState<Page extends BaseView> extends State<Page> {
     final List<BaseBloc> blocs = getBlocs();
 
     return Material(
-      color: AppColors.transparent,
       child: MultiBlocProvider(
-        providers:
-            blocs
-                .map((bloc) => BlocProvider<BaseBloc>.value(value: bloc))
-                .toList(),
+        providers: blocs
+            .map((bloc) => BlocProvider<BaseBloc>.value(value: bloc))
+            .toList(),
         child: MultiBlocListener(
-          listeners:
-              blocs
-                  .map(
-                    (bloc) => BlocListener<BaseBloc, BaseState>(
-                      bloc: bloc,
-                      listener: (context, state) {
-                        if (state is APILoadingState) {
-                          showProgress();
-                        } else {
-                          hideProgress();
-                        }
-                        if (state is APIFailureState) {
-                          hideProgress();
-                          CustomDialogBox.show(
-                            context,
-                            title: 'Oops!',
-                            message: state.error,
-                            image: AppImages.failedDialog,
-                            positiveButtonText: 'Close',
-                            isTwoButton: false,
-                            positiveButtonTap: () {},
-                          );
-                        } else if (state is TokenInvalidState) {
-                          hideProgress();
-                          CustomDialogBox.show(
-                            context,
-                            title: 'Oops!',
-                            message: state.error,
-                            image: AppImages.failedDialog,
-                            positiveButtonText: 'Log Out',
-                            isTwoButton: false,
-                            positiveButtonTap: () {
-                              setState(() {
-                                // _localDatasource.clearAccessToken();
-                              });
-                              // Navigator.pushNamedAndRemoveUntil(
-                              //   context,
-                              //   Routes.kLoginView,
-                              //   (route) => false,
-                              // );
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  )
-                  .toList(),
-          child: Scaffold(
-            body: buildView(context),
-          ),
+          listeners: blocs
+              .map(
+                (bloc) => BlocListener<BaseBloc, BaseState>(
+                  bloc: bloc,
+                  listener: (context, state) {
+                    if (state is APILoadingState) {
+                      showProgress();
+                    } else {
+                      hideProgress();
+                    }
+                    if (state is APIFailureState) {
+                      hideProgress();
+                      CustomDialogBox.show(
+                        context,
+                        title: 'Oops!',
+                        message: state.error,
+                        image: AppImages.failedDialog,
+                        positiveButtonText: 'Close',
+                        isTwoButton: false,
+                        positiveButtonTap: () {},
+                      );
+                    } else if (state is TokenInvalidState) {
+                      hideProgress();
+                      CustomDialogBox.show(
+                        context,
+                        title: 'Oops!',
+                        message: state.error,
+                        image: AppImages.failedDialog,
+                        positiveButtonText: 'Log Out',
+                        isTwoButton: false,
+                        positiveButtonTap: () {
+                          setState(() {
+                            // _localDatasource.clearAccessToken();
+                          });
+                          // Navigator.pushNamedAndRemoveUntil(
+                          //   context,
+                          //   Routes.kLoginView,
+                          //   (route) => false,
+                          // );
+                        },
+                      );
+                    }
+                  },
+                ),
+              )
+              .toList(),
+          child: buildView(context),
         ),
       ),
     );

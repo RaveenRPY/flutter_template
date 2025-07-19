@@ -5,7 +5,7 @@ const double kTopMarginOnBoarding = 32;
 const double kBottomMargin = 20;
 const double kOnBoardingMarginBetweenFields = 25;
 
-const kAppName = '{PROJECT_NAME}';
+const kAppName = 'AventaPOS';
 
 class AppConstants {
   static String kBaseUrl = 'http://your_base_url/';
