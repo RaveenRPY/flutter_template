@@ -1,0 +1,239 @@
+import 'package:AventaPOS/core/services/dependency_injection.dart';
+import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/login/login_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/login/login_event.dart';
+import 'package:AventaPOS/features/presentation/bloc/login/login_state.dart';
+import 'package:AventaPOS/features/presentation/bloc/sale/sale_bloc.dart';
+import 'package:AventaPOS/features/presentation/views/base_view.dart';
+import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
+import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
+import 'package:AventaPOS/utils/app_colors.dart';
+import 'package:AventaPOS/utils/app_images.dart';
+import 'package:AventaPOS/utils/app_stylings.dart';
+import 'package:AventaPOS/utils/navigation_routes.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sizer/sizer.dart';
+
+import '../../widgets/zynolo_form_field.dart';
+
+class LoginView extends BaseView {
+  const LoginView({super.key});
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends BaseViewState<LoginView> {
+  final LoginBloc _loginBloc = inject<LoginBloc>();
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  final _usernameKey = GlobalKey<FormState>();
+  final _passwordKey = GlobalKey<FormState>();
+
+  bool isUsernameValidated = false;
+  bool isPasswordValidated = false;
+
+  @override
+  Widget buildView(BuildContext context) {
+    return BlocProvider<LoginBloc>(
+      create: (context) => _loginBloc,
+      child: BlocListener<LoginBloc, BaseState<LoginState>>(
+        listener: (context, state) {
+          if (state is LoginSuccessState) {
+            FocusManager.instance.primaryFocus?.unfocus();
+            Navigator.pushReplacementNamed(context, Routes.kSaleView);
+          } else if (state is LoginFailedState) {
+            FocusManager.instance.primaryFocus?.unfocus();
+
+            AppDialogBox.show(
+              context,
+              title: 'Oops..!',
+              message: state.errorMsg,
+              image: AppImages.failedDialog,
+              isTwoButton: false,
+              positiveButtonTap: () {},
+              positiveButtonText: 'Try Again',
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.whiteColor,
+          body: Padding(
+            padding: const EdgeInsets.all(30),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: double.infinity,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(40),
+                      child: Image.asset(
+                        AppImages.loginBg,
+                        fit: BoxFit.fitHeight,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                Expanded(
+                  flex: 1,
+                  child: SizedBox(
+                    height: double.infinity,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "AVENTA",
+                              style: AppStyling.semi35Black.copyWith(
+                                  color: AppColors.primaryColor, fontSize: 55),
+                            ),
+                            Text(
+                              "POS",
+                              style: AppStyling.semi35Black.copyWith(
+                                  color: AppColors.darkBlue, fontSize: 55),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        Text(
+                          "Welcome Back",
+                          style: AppStyling.medium12Black.copyWith(
+                              fontSize: 25, color: AppColors.blackColor),
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          "Please enter your details to sign in",
+                          style:
+                              AppStyling.regular12Grey.copyWith(fontSize: 16),
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Username",
+                                style: AppStyling.medium12Black
+                                    .copyWith(color: AppColors.darkGrey),
+                              ),
+                              SizedBox(height: 10),
+                              Form(
+                                key: _usernameKey,
+                                // autovalidateMode:
+                                //     AutovalidateMode.onUserInteraction,
+                                child: AventaFormField(
+                                  controller: _usernameController,
+                                  hintText: "Enter your Username",
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      setState(() {
+                                        isUsernameValidated = false;
+                                      });
+                                      return 'Username can\'t be empty';
+                                    } else {
+                                      setState(() {
+                                        isUsernameValidated = true;
+                                      });
+                                    }
+
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    _usernameKey.currentState?.validate();
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                "Password",
+                                style: AppStyling.medium12Black
+                                    .copyWith(color: AppColors.darkGrey),
+                              ),
+                              SizedBox(height: 10),
+                              Form(
+                                key: _passwordKey,
+                                // autovalidateMode:
+                                //     AutovalidateMode.onUserInteraction,
+                                child: AventaFormField(
+                                  controller: _passwordController,
+                                  hintText: "Enter your Password",
+                                  isObsecure: true,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      setState(() {
+                                        isPasswordValidated = false;
+                                      });
+                                      return 'Password can\'t be empty';
+                                    } else {
+                                      setState(() {
+                                        isPasswordValidated = true;
+                                      });
+                                    }
+
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    _passwordKey.currentState?.validate();
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 65),
+                              AppMainButton(
+                                title: "Login",
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                  _usernameKey.currentState?.validate();
+                                  _passwordKey.currentState?.validate();
+
+                                  if (isPasswordValidated &&
+                                      isUsernameValidated) {
+                                    _loginBloc.add(CashierLoginEvent(
+                                      username: _usernameController.text.trim(),
+                                      password: _passwordController.text.trim(),
+                                    ));
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 70,
+                        ),
+                        Text(
+                          "© 2025 AventaPOS. All Rights Reserved.",
+                          style: AppStyling.regular12Grey,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  List<BaseBloc<BaseEvent, BaseState>> getBlocs() {
+    return [_loginBloc];
+  }
+}

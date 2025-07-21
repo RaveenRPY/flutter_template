@@ -1,22 +1,27 @@
+import 'package:AventaPOS/features/presentation/views/login/login_view.dart';
+import 'package:AventaPOS/features/presentation/views/splash/splash_view.dart';
 import 'package:flutter/material.dart';
 
-import '../features/presentation/views/sample/sample_view.dart';
 import '../features/presentation/views/home/home_view.dart';
 import 'app_colors.dart';
 import 'app_stylings.dart';
 
 class Routes {
-  static const String kSampleView = "kSampleView";
+  static const String kSplashView = "kSplashView";
   static const String kSaleView = "kSaleView";
+  static const String kLoginView = "kLoginView";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     Widget page;
     switch (settings.name) {
-      case Routes.kSampleView:
-        page = const SampleView();
+      case Routes.kSplashView:
+        page = const SplashView();
         break;
       case Routes.kSaleView:
         page = const SaleView();
+        break;
+      case Routes.kLoginView:
+        page = const LoginView();
         break;
       default:
         page = Scaffold(

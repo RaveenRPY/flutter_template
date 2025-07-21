@@ -91,23 +91,26 @@ class _AppMainButtonState extends State<AppMainButton> {
                   elevation: const WidgetStatePropertyAll(0),
                 ),
         onPressed: widget.isEnable! ? widget.onTap : null,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.prefixIcon ?? const SizedBox(),
-            widget.prefixIcon != null
-                ? const SizedBox(width: 5)
-                : const SizedBox(),
-            Text(
-              widget.title,
-              style:
-                  !widget.isNegative!
-                      ? widget.isEnable!
-                          ? widget.titleStyle ?? AppStyling.medium14White
-                          : AppStyling.medium14White
-                      : widget.titleStyle ?? AppStyling.medium14Black,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              widget.prefixIcon ?? const SizedBox(),
+              widget.prefixIcon != null
+                  ? const SizedBox(width: 5)
+                  : const SizedBox(),
+              Text(
+                widget.title,
+                style:
+                    !widget.isNegative!
+                        ? widget.isEnable!
+                            ? widget.titleStyle ?? AppStyling.medium14White
+                            : AppStyling.medium14White
+                        : widget.titleStyle ?? AppStyling.medium14Black,
+              ),
+            ],
+          ),
         ),
       ),
     );

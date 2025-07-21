@@ -56,7 +56,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateRoute: Routes.generateRoute,
-      initialRoute: Routes.kSaleView,
+      initialRoute: Routes.kSplashView,
       debugShowCheckedModeBanner: true,
       builder:
           (context, child) => MediaQuery(

@@ -6,10 +6,10 @@ const kReceiveTimeout = 5;
 
 class IPAddress {
   /// Replace from your IPs or Urls
-  static const String QA = '1.2.3.4:8080/';
-  static const String DEV = '1.2.3.4:8080/';
-  static const String UAT = '1.2.3.4:8080/';
-  static const String LIVE = '1.2.3.4:8080/';
+  static const String QA = '147.93.157.141:9090/';
+  static const String DEV = '147.93.157.141:9090/';
+  static const String UAT = '147.93.157.141:9090/';
+  static const String LIVE = '147.93.157.141:9090/';
 }
 
 class ServerProtocol {
@@ -22,10 +22,10 @@ class ServerProtocol {
 
 class ContextRoot {
   /// Replace from your root path
-  static const String QA = 'auth-service/api/v1/';
-  static const String DEV = 'auth-service/api/v1/';
-  static const String UAT = 'auth-service/api/v1/';
-  static const String LIVE = 'auth-service/api/v1/';
+  static const String QA = 'auth/api/v1/';
+  static const String DEV = 'auth/api/v1/';
+  static const String UAT = 'auth/api/v1/';
+  static const String LIVE = 'auth/api/v1/';
 }
 
 class NetworkConfig {

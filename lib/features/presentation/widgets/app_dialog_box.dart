@@ -42,67 +42,71 @@ class AppDialogBox extends StatelessWidget {
         child: Material(
           color: AppColors.whiteColor,
           borderRadius: BorderRadius.circular(30),
-          child: Wrap(
-            children: [
-              Padding(
-                padding:
-                    EdgeInsets.symmetric(vertical: 2.8.h, horizontal: 2.6.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    1.verticalSpace,
-                    Center(
-                      child: Lottie.asset(
-                        image ?? AppImages.successDialog,
-                        frameRate: const FrameRate(120),
-                        height: 120,
+          child: Container(
+            width: 28.w,
+            constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
+            child: Wrap(
+              children: [
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 2.8.h, horizontal: 2.6.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      1.verticalSpace,
+                      Center(
+                        child: Lottie.asset(
+                          image ?? AppImages.successDialog,
+                          frameRate: const FrameRate(120),
+                          height: 200,
+                        ),
                       ),
-                    ),
-                    2.verticalSpace,
-                    Text(
-                      title ?? '',
-                      style: AppStyling.medium18Black,
-                    ),
-                    1.3.verticalSpace,
-                    Text(
-                      message ?? '',
-                      textAlign: TextAlign.center,
-                      style: AppStyling.regular12Black,
-                    ),
-                    4.verticalSpace,
-                    Row(
-                      children: [
-                        if (isTwoButton!)
+                      2.verticalSpace,
+                      Text(
+                        title ?? '',
+                        style: AppStyling.medium22Black,
+                      ),
+                      1.3.verticalSpace,
+                      Text(
+                        message ?? '',
+                        textAlign: TextAlign.center,
+                        style: AppStyling.regular14Black,
+                      ),
+                      5.verticalSpace,
+                      Row(
+                        children: [
+                          if (isTwoButton!)
+                            Expanded(
+                              child: AppMainButton(
+                                title: negativeButtonText ?? '',
+                                color: AppColors.darkGrey.withOpacity(0.15),
+                                titleStyle: AppStyling.medium14Black.copyWith(color: AppColors.darkGrey),
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                  Navigator.pop(context);
+                                  negativeButtonTap!();
+                                },
+                              ),
+                            ),
+                          if (isTwoButton!) SizedBox(width: 10),
                           Expanded(
                             child: AppMainButton(
-                              title: negativeButtonText ?? '',
-                              color: AppColors.darkGrey.withOpacity(0.15),
-                              titleStyle: AppStyling.medium14Black.copyWith(color: AppColors.darkGrey),
+                              title: positiveButtonText ?? 'Done',
+                              titleStyle: AppStyling.medium14White,
                               onTap: () {
                                 FocusScope.of(context).unfocus();
                                 Navigator.pop(context);
-                                negativeButtonTap!();
+                                positiveButtonTap!();
                               },
                             ),
                           ),
-                        if (isTwoButton!) SizedBox(width: 2.w),
-                        Expanded(
-                          child: AppMainButton(
-                            title: positiveButtonText ?? 'Done',
-                            titleStyle: AppStyling.medium14White,
-                            onTap: () {
-                              FocusScope.of(context).unfocus();
-                              Navigator.pop(context);
-                              positiveButtonTap!();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

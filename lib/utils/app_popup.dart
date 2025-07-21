@@ -1,70 +1,377 @@
 import 'dart:ui';
 
+import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
+import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/new_sales_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import 'app_colors.dart';
+import 'app_stylings.dart';
 
 class PopupWindow extends StatefulWidget {
-  const PopupWindow({super.key});
+  String? itemName;
+  String? itemCode;
+  double? labelPrice;
+  double? cost;
+  int? qty;
+  int? stockQty;
+  double? salePrice;
+  bool? isForEdit;
+  final void Function(Product, int, double)? onAddToCart;
+
+  PopupWindow(
+      {super.key,
+      this.itemName,
+      this.itemCode,
+      this.labelPrice,
+      this.salePrice,
+      this.qty,
+      this.stockQty,
+      this.isForEdit,
+      this.onAddToCart});
 
   @override
   State<PopupWindow> createState() => _PopupWindowState();
-}
 
-class _PopupWindowState extends State<PopupWindow> {
-  @override
-  Widget build(BuildContext context) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-      child: Container(
-        alignment: FractionalOffset.center,
-        padding: const EdgeInsets.all(25),
-        child: Material(
-          color: AppColors.whiteColor,
-          borderRadius: BorderRadius.circular(30),
-          child: Wrap(
-            children: [
-              Padding(
-                padding:
-                    EdgeInsets.symmetric(vertical: 2.8.h, horizontal: 2.6.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static void show(BuildContext context) {
+  static void show(
+    BuildContext context, {
+    String? itemName,
+    String? itemCode,
+    double? labelPrice,
+    double? cost,
+    int? qty,
+    int? stockQty,
+    double? salePrice,
+    bool? isForEdit,
+    void Function(Product, int, double)? onAddToCart,
+  }) {
     showGeneralDialog(
       context: context,
       barrierLabel: "",
-      barrierDismissible: false,
+      barrierDismissible: true,
       transitionBuilder: (context, a1, a2, widget) {
         return Transform.scale(
           scale: a1.value,
           child: Opacity(
             opacity: a1.value,
-            child: PopScope(
-              canPop: false,
-              child: PopupWindow(),
+            child: PopupWindow(
+              itemCode: itemCode,
+              itemName: itemName,
+              labelPrice: labelPrice,
+              salePrice: salePrice,
+              qty: qty,
+              stockQty: stockQty,
+              onAddToCart: onAddToCart,
+              isForEdit: isForEdit ?? false,
             ),
           ),
         );
       },
-      transitionDuration: const Duration(milliseconds: 100),
-      pageBuilder: (
-        BuildContext context,
-        Animation<double> animation,
-        Animation<double> secondaryAnimation,
-      ) {
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) {
         return const SizedBox.shrink();
       },
+    );
+  }
+}
+
+class _PopupWindowState extends State<PopupWindow> {
+  final TextEditingController _labelPriceController = TextEditingController();
+  final TextEditingController _salePriceController = TextEditingController();
+  final TextEditingController _newSalePriceController = TextEditingController();
+  final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _qtyController = TextEditingController();
+
+  final FocusNode _qtyFocusNode = FocusNode();
+  final _qtyFormKey = GlobalKey<FormState>();
+  final _newSalePriceFormKey = GlobalKey<FormState>();
+
+  late double _salePrice;
+  late int _qty;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelPriceController.text = widget.labelPrice.toString();
+    _salePriceController.text = widget.salePrice.toString();
+    _newSalePriceController.text = widget.salePrice.toString();
+    _stockController.text = widget.stockQty.toString();
+
+    _qtyFocusNode.requestFocus();
+    _qtyController.text = (widget.qty ?? "1").toString();
+
+    _salePrice = widget.salePrice ?? 0;
+    _qty = int.parse(_qtyController.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.transparent,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+        child: Center(
+          child: Container(
+            // margin: EdgeInsets.symmetric(horizontal: 30.w),
+            width: 30.w,
+            constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
+            decoration: BoxDecoration(
+                color: AppColors.whiteColor,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkGrey.withOpacity(0.2),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                    spreadRadius: 0,
+                  ),
+                ],
+                border: Border(
+                    top: BorderSide(color: AppColors.primaryColor, width: 10))),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Compact Content
+                Padding(
+                  padding: EdgeInsets.fromLTRB(30, 5, 30, 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 50),
+                        child: Text(
+                          widget.itemName ?? "",
+                          style:
+                              AppStyling.medium25Black.copyWith(fontSize: 30),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 10, bottom: 35),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          widget.itemCode ?? "",
+                          style: AppStyling.medium12Black.copyWith(
+                            color: AppColors.primaryColor,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      // Product Info Card
+                      AventaFormField(
+                        controller: _labelPriceController,
+                        label: "Label Price",
+                        isCurrency: true,
+                        isReadOnly: true,
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      AventaFormField(
+                        controller: _salePriceController,
+                        label: "Sale Price",
+                        isCurrency: true,
+                        isReadOnly: true,
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      AventaFormField(
+                        controller: _stockController,
+                        label: "Available Qty",
+                        isReadOnly: true,
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Form(
+                              key: _newSalePriceFormKey,
+                              child: AventaFormField(
+                                controller: _newSalePriceController,
+                                label: "Custom Sale Price",
+                                isCurrency: true,
+                                showCurrencySymbol: true,
+                                onChanged: (value) {
+                                  setState(() {
+                                    // For currency fields, we need to parse the masked value
+                                    if (value.isNotEmpty) {
+                                      // Remove commas and parse the numeric value
+                                      String cleanValue =
+                                          value.replaceAll(',', '');
+                                      if (cleanValue.isNotEmpty) {
+                                        _salePrice =
+                                            double.tryParse(cleanValue) ?? 0.0;
+                                      }
+                                    }
+                                  });
+                                },
+                                validator: (price) {
+                                  if (price != null) {
+                                    if (double.parse(
+                                            price.replaceAll(',', '')) >
+                                        widget.labelPrice!) {
+                                      return 'Sale price can\'t exceed the MRP';
+                                    } else if (double.parse(
+                                            price.replaceAll(',', '')) <
+                                        (widget.cost ?? 1000)) {
+                                      return 'Please enter a higher price';
+                                    }
+                                  } else {
+                                    return 'Price can\'t be null';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              onChanged: () {
+                                setState(() {
+                                  _newSalePriceFormKey.currentState?.validate();
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 15,
+                          ),
+                          Expanded(
+                            child: Form(
+                              key: _qtyFormKey,
+                              child: AventaFormField(
+                                focusNode: _qtyFocusNode,
+                                controller: _qtyController,
+                                label: "Qty",
+                                validator: (qty) {
+                                  if (qty != null) {
+                                    if (int.parse(qty) > widget.qty!) {
+                                      return 'Not enough stock. Choose a lower quantity';
+                                    } else if (int.parse(qty) == 0) {
+                                      return 'Qty cannot be zero';
+                                    }
+                                  } else {
+                                    return 'Qty cannot be null';
+                                  }
+                                  return null;
+                                },
+                                textInputType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    _qty = int.tryParse(value) ?? 1;
+                                  });
+                                  _qtyFormKey.currentState?.validate();
+                                },
+                              ),
+                              onChanged: () {
+                                // _qtyFormKey.currentState?.validate();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 45),
+
+                      // Total Amount
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primaryColor.withOpacity(0.08),
+                              AppColors.primaryColor.withOpacity(0.03),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withOpacity(0.15),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Amount:',
+                              style: AppStyling.medium14Black.copyWith(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              'Rs. ${NumberFormat.currency(locale: 'en_US', symbol: '', decimalDigits: 2).format(_salePrice * _qty)}',
+                              style: AppStyling.semi16Black.copyWith(
+                                color: AppColors.primaryColor,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 2.5.h),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppMainButton(
+                              title: "Cancel",
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              color: AppColors.darkGrey.withOpacity(0.15),
+                              titleStyle: AppStyling.regular14Black
+                                  .copyWith(color: AppColors.darkGrey),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                              child: AppMainButton(
+                            title: widget.isForEdit! ? "Save" : "Add to Cart",
+                            onTap: () {
+                              // Create a Product object and add to cart
+                              if (widget.onAddToCart != null) {
+                                final product = Product(
+                                  name: widget.itemName ?? '',
+                                  code: widget.itemCode ?? '',
+                                  labelPrice: widget.labelPrice ?? 0,
+                                  qty: widget.qty?.toInt() ?? 0,
+                                  salePrice: _salePrice,
+                                );
+                                widget.onAddToCart!(product, _qty, _salePrice);
+                              }
+                              Navigator.pop(context);
+                            },
+                          ))
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

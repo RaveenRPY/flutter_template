@@ -1,19 +1,24 @@
 import 'dart:developer';
 
-import 'package:AventaPOS/features/domain/entities/data.dart';
 import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
 import 'package:AventaPOS/features/presentation/views/base_view.dart';
-import 'package:AventaPOS/features/presentation/widgets/app_dropdown.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/widgets/cart_item.dart';
+import 'package:AventaPOS/features/presentation/widgets/zynolo_toast.dart';
+import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
 import 'package:AventaPOS/utils/app_images.dart';
 import 'package:AventaPOS/utils/app_spacing.dart';
+import 'package:AventaPOS/utils/enums.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import '../../../../core/services/dependency_injection.dart';
 import '../../../../utils/app_colors.dart';
+import '../../../../utils/app_popup.dart' show PopupWindow;
 import '../../../../utils/app_stylings.dart';
+import '../../../domain/entities/cart_product.dart';
 import '../../bloc/sale/sale_bloc.dart';
 import '../../bloc/sale/sale_event.dart';
 import '../../bloc/sale/sale_state.dart';
@@ -37,6 +42,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   // Add a state variable for filter toggle
   bool _filtersEnabled = false;
+
+  // Multi-select functionality
+  bool _isSelectionMode = false;
+  Set<int> _selectedItems = {};
+
+  // Cart items list using Product model
+  List<CartProduct> _cartItems = [];
 
   // Add a list of all products and a filtered list
   final List<Product> _allProducts = [
@@ -122,6 +134,173 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     });
   }
 
+  void _deleteSelectedItems() {
+    // Create a new list without selected items
+    final newCartItems = <CartProduct>[];
+
+    for (int i = 0; i < _cartItems.length; i++) {
+      if (!_selectedItems.contains(i)) {
+        newCartItems.add(_cartItems[i]);
+      }
+    }
+
+    // Update the cart items list and clear selection
+    setState(() {
+      _cartItems = newCartItems;
+      _isSelectionMode = false;
+      _selectedItems.clear();
+    });
+  }
+
+  void _incrementQuantity(int index) {
+    if (index < _cartItems.length) {
+      setState(() {
+        _cartItems[index].quantity = _cartItems[index].quantity + 1;
+      });
+    }
+  }
+
+  void _showRemoveItemConfirmation(int index, String productName) {
+    AppDialogBox.show(
+      context,
+      title: 'Remove Item',
+      message: 'Are you sure you want to remove "$productName" from the cart?',
+      image: AppImages.failedDialog,
+      negativeButtonText: 'Cancel',
+      negativeButtonTap: () {
+        // Do nothing, just close the dialog
+      },
+      positiveButtonText: 'Remove',
+      positiveButtonTap: () {
+        _removeItemFromCart(index);
+      },
+    );
+  }
+
+  void _removeItemFromCart(int index) {
+    if (index < _cartItems.length) {
+      final productName = _cartItems[index].name;
+      final newCartItems = <CartProduct>[];
+      for (int i = 0; i < _cartItems.length; i++) {
+        if (i != index) {
+          newCartItems.add(_cartItems[i]);
+        }
+      }
+
+      setState(() {
+        _cartItems = newCartItems;
+      });
+
+      // Show removal toast
+      _showRemovedToast(productName);
+    }
+  }
+
+  void _decrementQuantity(int index) {
+    if (index < _cartItems.length) {
+      int currentQty = _cartItems[index].quantity;
+      if (currentQty > 1) {
+        setState(() {
+          _cartItems[index].quantity = currentQty - 1;
+        });
+      } else {
+        // Show confirmation dialog before removing item
+        _showRemoveItemConfirmation(index, _cartItems[index].name);
+      }
+    }
+  }
+
+  double _calculateTotalPrice(int index) {
+    if (index < _cartItems.length) {
+      return _cartItems[index].unitPrice * _cartItems[index].quantity;
+    }
+    return 0.0;
+  }
+
+  double _calculateCartTotal() {
+    return _cartItems.fold(0.0, (total, item) {
+      return total + (item.unitPrice * item.quantity);
+    });
+  }
+
+  // void _addItemToCart() {
+  //   final newId = _cartItems.length;
+  //   final newItem = CartProduct(
+  //     id: newId,
+  //     name: 'Product ${newId + 1}',
+  //     code: 'P${(newId + 1).toString().padLeft(3, '0')}',
+  //     unitPrice: 1200.00 + (newId * 100),
+  //     quantity: 1,
+  //   );
+  //
+  //   setState(() {
+  //     _cartItems.add(newItem);
+  //   });
+  // }
+
+  bool _isProductInCart(String productCode) {
+    return _cartItems.any((item) => item.code == productCode);
+  }
+
+  void _showDuplicateItemToast() {
+    ZynoloToast(
+      title: 'Item already in cart!',
+      toastType: Toast.warning,
+      animationDuration: Duration(milliseconds: 500),
+      toastPosition: Position.top,
+      animationType: AnimationType.fromTop,
+      backgroundColor: AppColors.whiteColor.withOpacity(1),
+    ).show(context);
+  }
+
+  void _showSuccessToast(String productName) {
+    ZynoloToast(
+      title: '$productName added to cart!',
+      toastType: Toast.success,
+      animationDuration: Duration(milliseconds: 500),
+      toastPosition: Position.top,
+      animationType: AnimationType.fromTop,
+      backgroundColor: AppColors.whiteColor.withOpacity(1),
+    ).show(context);
+  }
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(
+      locale: 'en_US',
+      symbol: 'Rs. ',
+      decimalDigits: 2,
+    ).format(amount);
+  }
+
+  void _showRemovedToast(String productName) {
+    ZynoloToast(
+      title: '$productName removed from cart!',
+      toastType: Toast.failed,
+      animationDuration: Duration(milliseconds: 500),
+      toastPosition: Position.top,
+      animationType: AnimationType.fromTop,
+      backgroundColor: AppColors.whiteColor.withOpacity(1),
+    ).show(context);
+  }
+
+  void addProductToCart(Product product, int quantity, double price) {
+    final newId = _cartItems.length;
+    final newItem = CartProduct(
+      id: newId,
+      name: product.name,
+      code: product.code,
+      unitPrice: price,
+      quantity: quantity,
+      labelPrice: product.salePrice,
+      cost: 0,
+      stockQty: product.qty,
+    );
+    setState(() {
+      _cartItems.add(newItem);
+    });
+    log(product.qty.toString());
+  }
+
   @override
   void dispose() {
     _focusNode.dispose();
@@ -147,12 +326,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   Widget _buildSalesContent(BuildContext context, SaleLoadedState state) {
     final String buttonText = _isRetail ? 'Retail' : 'Wholesale';
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(text: buttonText, style: AppStyling.medium14White),
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout();
-    final double textWidth = textPainter.width;
+    final double textWidth = buttonText.length * 8.0;
 
     return Padding(
       padding: const EdgeInsets.all(14.0),
@@ -227,7 +401,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       alignment: Alignment.center,
                       child: Text(
                         buttonText,
-                        style: AppStyling.medium12White,
+                        style: AppStyling.regular12White,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -258,7 +432,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                             Text(
                               'Last Sale',
-                              style: AppStyling.medium12Black,
+                              style: AppStyling.regular12Black,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -292,7 +466,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                             Text(
                               'New Tab',
-                              style: AppStyling.medium12Black,
+                              style: AppStyling.regular12Black,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -343,14 +517,17 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             borderRadius: BorderRadius.circular(60),
                             child: Image.asset(AppImages.userAvatar)),
                       ),
-                      1.horizontalSpace,
+                      SizedBox(
+                        width: 10,
+                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             'Jason Derulo',
-                            style: AppStyling.medium14Black.copyWith(height: 1),
+                            style:
+                                AppStyling.regular14Black.copyWith(height: 1),
                           ),
                           SizedBox(
                             height: 4,
@@ -368,7 +545,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         child: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: AppColors.darkBlue,
-                          size: 25,
+                          size: 20,
                         ),
                       )
                     ],
@@ -428,7 +605,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   children: [
                     Text(
                       'Top Products',
-                      style: AppStyling.semi16Black,
+                      style: AppStyling.medium20Black,
                     ),
                   ],
                 ),
@@ -693,6 +870,34 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           qty: 13,
                           salePrice: 1520.00),
                     ]),
+                    onCellTap: (details) {
+                      if (details.rowColumnIndex.rowIndex > 0) {
+                        final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                        if (rowIndex < _filteredProducts.length) {
+                          final product = _filteredProducts[rowIndex];
+                          print(
+                              'Tapped product: Name: ${product.name}, Code: ${product.code}, Price: ${product.labelPrice}, other: ${product.qty}');
+
+                          // Check if product is already in cart
+                          if (_isProductInCart(product.code)) {
+                            _showDuplicateItemToast();
+                          } else {
+                            PopupWindow.show(
+                              context,
+                              itemCode: product.code,
+                              itemName: product.name,
+                              labelPrice: product.labelPrice,
+                              salePrice: product.salePrice,
+                              // qty: product.qty,
+                              stockQty: product.qty,
+                              onAddToCart: (Product p, int qty, double price) {
+                                addProductToCart(p, qty, price);
+                              },
+                            );
+                          }
+                        }
+                      }
+                    },
                     columns: [
                       GridColumn(
                         columnName: 'name',
@@ -798,7 +1003,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   children: [
                     Text(
                       'Latest Sales',
-                      style: AppStyling.semi16Black,
+                      style: AppStyling.medium20Black,
                     ),
                     TextButton(
                       onPressed: () {},
@@ -882,7 +1087,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                                           style: AppStyling.regular10Black,
                                         ),
                                         Text(
-                                          "Rs. 13,345.00",
+                                          _formatCurrency(13345.00),
                                           style: AppStyling.semi12Black,
                                         ),
                                       ],
@@ -932,7 +1137,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
             children: [
               Text(
                 'Products',
-                style: AppStyling.semi16Black,
+                style: AppStyling.medium20Black,
               ),
               Spacer(),
               // Fine-tuned modern filter toggle button
@@ -1072,6 +1277,16 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     final product = _filteredProducts[rowIndex];
                     print(
                         'Tapped product: Name: ${product.name}, Code: ${product.code}, Price: ${product.salePrice}');
+                    PopupWindow.show(
+                      context,
+                      itemCode: product.code,
+                      itemName: product.name,
+                      labelPrice: product.labelPrice,
+                      salePrice: product.salePrice,
+                      // qty: product.qty,
+                      stockQty: product.qty,
+                      onAddToCart: addProductToCart,
+                    );
                   }
                 }
               },
@@ -1191,10 +1406,78 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   ),
                 ),
                 1.horizontalSpace,
-                Text(
-                  'Cart ()',
-                  style: AppStyling.semi16Black,
+                Expanded(
+                  child: _isSelectionMode
+                      ? Text(
+                          'Select Items (${_selectedItems.length} selected)',
+                          style: AppStyling.regular16Grey,
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Cart',
+                              style: AppStyling.medium20Black,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '(${_cartItems.length})',
+                              style: AppStyling.regular18Black,
+                            ),
+                          ],
+                        ),
                 ),
+                if (_isSelectionMode) ...[
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isSelectionMode = false;
+                        _selectedItems.clear();
+                      });
+                    },
+                    child: Text(
+                      'Cancel',
+                      style: AppStyling.medium12Black.copyWith(
+                        color: AppColors.darkGrey,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  if (_selectedItems.isNotEmpty)
+                    TextButton(
+                      onPressed: _deleteSelectedItems,
+                      style: TextButton.styleFrom(
+                        backgroundColor: AppColors.red,
+                        foregroundColor: AppColors.whiteColor,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        'Delete (${_selectedItems.length})',
+                        style: AppStyling.medium12White,
+                      ),
+                    ),
+                ] else ...[
+                  IconButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                          AppColors.red.withOpacity(0.2)),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        // _isSelectionMode = true;
+                      });
+                    },
+                    icon: Icon(
+                      HugeIcons.strokeRoundedDelete03,
+                      color: AppColors.red,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1204,64 +1487,97 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 ? const Center(
                     child: Text('Cart is empty'),
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: 1,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                                color: AppColors.darkGrey.withOpacity(0.1),
-                                width: 1.5)),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                : _cartItems.isEmpty
+                    ? Center(
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Abiman Takkali 125g",
-                                  style: AppStyling.medium14Black,
-                                ),
-                                Text(
-                                  "Rs. 12,000.00",
-                                  style: AppStyling.regular12Grey,
-                                ),
-                              ],
+                            Icon(
+                              HugeIcons.strokeRoundedShoppingCart01,
+                              size: 64,
+                              color: AppColors.darkGrey.withOpacity(0.3),
                             ),
-                            SizedBox(
-                              height: 5,
+                            SizedBox(height: 16),
+                            Text(
+                              'Cart is empty',
+                              style: AppStyling.medium14Black.copyWith(
+                                color: AppColors.darkGrey.withOpacity(0.5),
+                              ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "Rs. 12,000.00",
-                                  style: AppStyling.regular12Grey,
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                        onPressed: () {}, icon: Icon(Icons.add, size: 20,))
-                                  ],
-                                )
-                              ],
-                            )
+                            SizedBox(height: 8),
+                            Text(
+                              'Add products to your cart',
+                              style: AppStyling.regular12Grey.copyWith(
+                                color: AppColors.darkGrey.withOpacity(0.4),
+                              ),
+                            ),
                           ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _cartItems.length,
+                        itemBuilder: (context, index) {
+                          final item = _cartItems[index];
+                          log(item.stockQty.toString());
+                          return CartItem(
+                            productName: item.name,
+                            productCode: item.code,
+                            unitPrice: item.unitPrice,
+                            totalPrice: _calculateTotalPrice(index),
+                            quantity: item.quantity,
+                            isLastItem: index == _cartItems.length - 1,
+                            isSelectionMode: _isSelectionMode,
+                            isSelected: _selectedItems.contains(index),
+                            onTap: () {
+                              if (_isSelectionMode) {
+                                setState(() {
+                                  if (_selectedItems.contains(index)) {
+                                    _selectedItems.remove(index);
+                                  } else {
+                                    _selectedItems.add(index);
+                                  }
+                                });
+                              } else {
+                                PopupWindow.show(context,
+                                    itemCode: item.code,
+                                    itemName: item.name,
+                                    labelPrice: item.labelPrice,
+                                    salePrice: item.unitPrice,
+                                    qty: item.quantity,
+                                    stockQty: item.stockQty,
+                                    onAddToCart: addProductToCart,
+                                    isForEdit: true);
+                              }
+                            },
+                            onLongPress: () {
+                              if (!_isSelectionMode) {
+                                setState(() {
+                                  _isSelectionMode = true;
+                                  _selectedItems.add(index);
+                                });
+                              }
+                            },
+                            onIncrement: _isSelectionMode
+                                ? null
+                                : () {
+                                    _incrementQuantity(index);
+                                  },
+                            onDecrement: _isSelectionMode
+                                ? null
+                                : () {
+                                    _decrementQuantity(index);
+                                  },
+                          );
+                        },
+                      ),
           ),
 
           // Checkout Section
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
-              color: AppColors.lightGrey,
+              color: AppColors.whiteColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
@@ -1269,26 +1585,74 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
             ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total:',
-                      style: AppStyling.semi16Black,
+                Container(
+                  // height: 400,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Sub Total',
+                          style: AppStyling.medium14Black,
+                        ),
+                        Text(
+                          _formatCurrency(_calculateCartTotal()),
+                          style: AppStyling.semi16Black,
+                        ),
+                      ],
                     ),
-                    Text(
-                      '\$${120023.toStringAsFixed(2)}',
-                      style: AppStyling.semi16Black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppMainButton(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: Icon(
+                            HugeIcons.strokeRoundedUserAdd01,
+                            color: AppColors.darkBlue,
+                          ),
+                        ),
+                        color: AppColors.primaryColor.withOpacity(0.2),
+                        title: 'Select Customer',
+                        titleStyle: AppStyling.medium14Black
+                            .copyWith(color: AppColors.darkBlue),
+                        onTap: () {},
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: AppMainButton(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: Icon(
+                            HugeIcons.strokeRoundedCancelCircle,
+                            color: AppColors.red,
+                          ),
+                        ),
+                        color: AppColors.red.withOpacity(0.15),
+                        title: 'Cancel Sale',
+                        titleStyle: AppStyling.medium14Black
+                            .copyWith(color: AppColors.red),
+                        onTap: () {},
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: AppMainButton(
-                    title: 'Complete Sale',
-                    onTap: () {},
+                const SizedBox(height: 10),
+                AppMainButton(
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: Icon(HugeIcons.strokeRoundedCheckmarkBadge03),
                   ),
+                  title: 'Checkout',
+                  onTap: () {},
                 ),
               ],
             ),
@@ -1370,7 +1734,11 @@ class ProductDataSource extends DataGridSource {
             cell.value is double
                 ? (cell.columnName == 'labelPrice' ||
                         cell.columnName == 'salePrice')
-                    ? cell.value.toStringAsFixed(2)
+                    ? NumberFormat.currency(
+                        locale: 'en_US',
+                        symbol: '',
+                        decimalDigits: 2,
+                      ).format(cell.value)
                     : cell.value.toString()
                 : cell.value.toString(),
             overflow: TextOverflow.ellipsis,

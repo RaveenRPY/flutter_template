@@ -1,3 +1,5 @@
+import 'package:AventaPOS/features/domain/usecases/login/login.dart';
+import 'package:AventaPOS/features/presentation/bloc/login/login_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -10,8 +12,6 @@ import '../../features/data/datasources/local_datasource.dart';
 import '../../features/data/datasources/remote_datasource.dart';
 import '../../features/data/repositories/repository_impl.dart';
 import '../../features/domain/respositories/repository.dart';
-import '../../features/domain/usecases/sample/sample.dart';
-import '../../features/presentation/bloc/sample/sample_bloc.dart';
 import '../../features/presentation/bloc/sale/sale_bloc.dart';
 import 'api_helper.dart';
 import '../network/network_info.dart';
@@ -61,13 +61,13 @@ Future<void> setupLocator() async {
 
   // Use Cases
   inject.registerLazySingleton(
-    () => SampleUseCase(repository: inject()),
+    () => LoginUseCase(repository: inject()),
   );
 
   // BLoCs - Using Factory for stateful BLoCs
   inject.registerFactory(
-    () => SampleBloc(
-      sampleUseCase: inject<SampleUseCase>(),
+    () => LoginBloc(
+      loginUseCase: inject<LoginUseCase>(),
     ),
   );
 
