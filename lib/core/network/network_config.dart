@@ -22,10 +22,10 @@ class ServerProtocol {
 
 class ContextRoot {
   /// Replace from your root path
-  static const String QA = 'auth/api/v1/';
-  static const String DEV = 'auth/api/v1/';
-  static const String UAT = 'auth/api/v1/';
-  static const String LIVE = 'auth/api/v1/';
+  static const String QA = '';
+  static const String DEV = '';
+  static const String UAT = '';
+  static const String LIVE = '';
 }
 
 class NetworkConfig {

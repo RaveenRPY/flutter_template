@@ -8,17 +8,18 @@ import 'package:AventaPOS/utils/app_constants.dart';
 import 'package:AventaPOS/utils/msg_types.dart';
 import 'package:bloc/bloc.dart';
 
+import '../../../data/datasources/local_datasource.dart';
 import '../../../data/models/common/base_response.dart';
 import '../base_bloc.dart';
 
 class LoginBloc extends BaseBloc<LoginEvent, BaseState<LoginState>> {
   final LoginUseCase? loginUseCase;
+  final LocalDatasource? localDatasource;
 
-  LoginBloc({this.loginUseCase}) : super(LoginInitial()) {
+  LoginBloc({this.loginUseCase, this.localDatasource}) : super(LoginInitial()) {
     on<CashierLoginEvent>(_onCashierLoginEvent);
   }
 
-  ///Update Profile Image
   Future<void> _onCashierLoginEvent(
     CashierLoginEvent event,
     Emitter<BaseState<LoginState>> emit,
@@ -27,25 +28,31 @@ class LoginBloc extends BaseBloc<LoginEvent, BaseState<LoginState>> {
       emit(APILoadingState());
 
       AppConstants.username = event.username;
-      final response = await loginUseCase!(
-          LoginRequest(message: kLoginRequest, password: event.password));
+      final response = await loginUseCase!(LoginRequest(
+        message: kLoginRequest,
+        password: event.password,
+      ));
 
       emit(
         response.fold(
           (l) {
             if (l is BaseResponse) {
-
               return LoginFailedState(
                   errorCode: l.errorCode, errorMsg: l.message);
             } else {
-
               return LoginFailedState(
                   errorCode: l.errorCode, errorMsg: l.toString());
             }
           },
           (r) {
             if (r.success!) {
-              return LoginSuccessState(message: r.message);
+              if (r.data!.accessToken != null) {
+                localDatasource!.setAccessToken(r.data!.accessToken!);
+              }
+              AppConstants.IS_USER_LOGGED = true;
+              AppConstants.profileData = r.data;
+
+              return LoginSuccessState(message: r.message, isOpening: r.data?.opening);
             } else {
               log(r.message.toString());
               return LoginFailedState(

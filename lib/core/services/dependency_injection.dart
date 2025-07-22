@@ -1,5 +1,7 @@
 import 'package:AventaPOS/features/domain/usecases/login/login.dart';
+import 'package:AventaPOS/features/domain/usecases/stock/get_stock.dart';
 import 'package:AventaPOS/features/presentation/bloc/login/login_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -21,13 +23,11 @@ final inject = GetIt.instance;
 Future<void> setupLocator() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-  const flutterSecureStorage = FlutterSecureStorage();
 
   // Core Services
   inject.registerSingleton(DeviceInfoPlugin());
   inject.registerLazySingleton(() => sharedPreferences);
   inject.registerLazySingleton(() => packageInfo);
-  inject.registerLazySingleton(() => flutterSecureStorage);
 
   // Network Services
   inject.registerSingleton(Dio());
@@ -37,11 +37,10 @@ Future<void> setupLocator() async {
   // Data Sources
   inject.registerLazySingleton<LocalDatasource>(
     () => LocalDatasource(
-      securePreferences: inject(),
       sharedPreferences: inject(),
     ),
   );
-  
+
   inject.registerLazySingleton<RemoteDataSource>(
     () => RemoteDataSourceImpl(apiHelper: inject()),
   );
@@ -63,11 +62,20 @@ Future<void> setupLocator() async {
   inject.registerLazySingleton(
     () => LoginUseCase(repository: inject()),
   );
+  inject.registerLazySingleton(
+    () => GetStockUseCase(repository: inject()),
+  );
 
   // BLoCs - Using Factory for stateful BLoCs
   inject.registerFactory(
     () => LoginBloc(
       loginUseCase: inject<LoginUseCase>(),
+      localDatasource: inject<LocalDatasource>(),
+    ),
+  );
+  inject.registerFactory(
+    () => StockBloc(
+      getStockUseCase: inject<GetStockUseCase>(),
     ),
   );
 

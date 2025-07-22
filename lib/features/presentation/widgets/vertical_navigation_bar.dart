@@ -1,9 +1,12 @@
+import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
 import 'package:AventaPOS/utils/app_images.dart';
+import 'package:AventaPOS/utils/navigation_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sizer/sizer.dart';
 import '../../../utils/app_colors.dart';
+import '../../../utils/app_constants.dart';
 import '../../../utils/app_stylings.dart';
 import '../models/navigation_item.dart';
 
@@ -57,25 +60,42 @@ class VerticalNavigationBar extends StatelessWidget {
           // Bottom Section (User Profile, Settings, etc.)
           Column(
             children: [
-              _NavigationItem(item: NavigationItem(icon: HugeIcons.strokeRoundedSettings01), isSelected: false, onTap: () {},),
+              _NavigationItem(
+                item: NavigationItem(icon: HugeIcons.strokeRoundedSettings01),
+                isSelected: false,
+                onTap: () {},
+              ),
               Container(
-                padding: EdgeInsets.fromLTRB(10,5,10,30),
+                padding: EdgeInsets.fromLTRB(10, 5, 10, 30),
                 child: Material(
                   color: AppColors.transparent,
                   child: InkWell(
-                    onTap: (){},
+                    onTap: () {
+                      AppDialogBox.show(
+                        context,
+                        title: 'Log out',
+                        message: 'Are you sure you want to Log out?',
+                        image: AppImages.warnDialog,
+                        negativeButtonText: 'Cancel',
+                        positiveButtonText: 'Log out',
+                        positiveButtonTap: () {
+                          AppConstants.clearAllUserData();
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            Routes.kLoginView,
+                            (route) => false,
+                          );
+                        },
+                        negativeButtonTap: () {},
+                      );
+                    },
                     borderRadius: BorderRadius.circular(15),
                     child: Container(
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: AppColors.whiteColor.withOpacity(0.2),
-                        shape: BoxShape.circle
-                      ),
-                      child: Icon(
-                        size: 20,
-                        Icons.logout,
-                        color: AppColors.red
-                      ),
+                          color: AppColors.whiteColor.withOpacity(0.2),
+                          shape: BoxShape.circle),
+                      child: Icon(size: 20, Icons.logout, color: AppColors.red),
                     ),
                   ),
                 ),

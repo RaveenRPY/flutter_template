@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 
 import '../../../utils/app_constants.dart';
@@ -11,11 +13,13 @@ class TokenInterceptor extends Interceptor {
 
   @override
   Future<void> onRequest(options, handler) async {
-    if (!AppConstants.IS_USER_LOGGED!) {
+    if (false) {
       options.headers['Authorization'] = null;
     } else {
       final String? accessToken = await localDataSource!.getAccessToken();
+      log("options.headers['Authorization'] = 'Bearer $accessToken'");
       if (accessToken != null && accessToken.isNotEmpty) {
+
         options.headers['Authorization'] = 'Bearer $accessToken';
       }
     }

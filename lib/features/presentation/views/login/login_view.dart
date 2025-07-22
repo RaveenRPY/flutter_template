@@ -5,6 +5,7 @@ import 'package:AventaPOS/features/presentation/bloc/login/login_event.dart';
 import 'package:AventaPOS/features/presentation/bloc/login/login_state.dart';
 import 'package:AventaPOS/features/presentation/bloc/sale/sale_bloc.dart';
 import 'package:AventaPOS/features/presentation/views/base_view.dart';
+import 'package:AventaPOS/features/presentation/views/login/widgets/opening_balance.dart';
 import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
 import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
 import 'package:AventaPOS/utils/app_colors.dart';
@@ -13,6 +14,7 @@ import 'package:AventaPOS/utils/app_stylings.dart';
 import 'package:AventaPOS/utils/navigation_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../widgets/zynolo_form_field.dart';
@@ -44,10 +46,10 @@ class _LoginViewState extends BaseViewState<LoginView> {
         listener: (context, state) {
           if (state is LoginSuccessState) {
             FocusManager.instance.primaryFocus?.unfocus();
-            Navigator.pushReplacementNamed(context, Routes.kSaleView);
+            // Navigator.pushReplacementNamed(context, Routes.kSaleView);
+            OpeningBalance.show(context);
           } else if (state is LoginFailedState) {
             FocusManager.instance.primaryFocus?.unfocus();
-
             AppDialogBox.show(
               context,
               title: 'Oops..!',
@@ -117,7 +119,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
                         Text(
                           "Please enter your details to sign in",
                           style:
-                              AppStyling.regular12Grey.copyWith(fontSize: 16),
+                              AppStyling.regular12Grey.copyWith(fontSize: 16,color: AppColors.darkGrey.withOpacity(0.7)),
                         ),
                         SizedBox(
                           height: 40,
@@ -140,6 +142,11 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                 child: AventaFormField(
                                   controller: _usernameController,
                                   hintText: "Enter your Username",
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.only(left: 10,),
+                                    child: Icon(Icons.alternate_email_rounded, size: 23,),
+                                  ),
+                                  prefixIconColor: AppColors.primaryColor,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
                                       setState(() {
@@ -174,6 +181,11 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                   controller: _passwordController,
                                   hintText: "Enter your Password",
                                   isObsecure: true,
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.only(left: 10,),
+                                    child: Icon(Icons.lock_outline_rounded, size: 23,),
+                                  ),
+                                  prefixIconColor: AppColors.primaryColor,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
                                       setState(() {
@@ -185,8 +197,20 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                         isPasswordValidated = true;
                                       });
                                     }
-
                                     return null;
+                                  },
+                                  onCompleted: (){
+                                    FocusScope.of(context).unfocus();
+                                    _usernameKey.currentState?.validate();
+                                    _passwordKey.currentState?.validate();
+
+                                    if (isPasswordValidated &&
+                                        isUsernameValidated) {
+                                      _loginBloc.add(CashierLoginEvent(
+                                        username: _usernameController.text.trim(),
+                                        password: _passwordController.text.trim(),
+                                      ));
+                                    }
                                   },
                                   onChanged: (value) {
                                     _passwordKey.currentState?.validate();

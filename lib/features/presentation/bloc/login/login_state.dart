@@ -6,8 +6,9 @@ class LoginInitial extends LoginState {}
 
 class LoginSuccessState extends LoginState {
   final String? message;
+  final bool? isOpening;
 
-  LoginSuccessState({this.message});
+  LoginSuccessState({this.message,this.isOpening});
 }
 
 class LoginFailedState extends LoginState {

@@ -1,16 +1,28 @@
+import 'dart:async';
 import 'dart:developer';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/widgets.dart';
 
 import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_event.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_state.dart';
 import 'package:AventaPOS/features/presentation/views/base_view.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/process_payment_view.dart';
 import 'package:AventaPOS/features/presentation/views/new_sale/widgets/cart_item.dart';
 import 'package:AventaPOS/features/presentation/widgets/zynolo_toast.dart';
 import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
+import 'package:AventaPOS/utils/app_constants.dart';
 import 'package:AventaPOS/utils/app_images.dart';
 import 'package:AventaPOS/utils/app_spacing.dart';
 import 'package:AventaPOS/utils/enums.dart';
+import 'package:AventaPOS/utils/navigation_routes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
+import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -18,11 +30,9 @@ import '../../../../core/services/dependency_injection.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_popup.dart' show PopupWindow;
 import '../../../../utils/app_stylings.dart';
-import '../../../domain/entities/cart_product.dart';
 import '../../bloc/sale/sale_bloc.dart';
-import '../../bloc/sale/sale_event.dart';
-import '../../bloc/sale/sale_state.dart';
 import '../../widgets/app_main_button.dart';
+import 'package:AventaPOS/features/data/models/responses/sale/get_stock.dart';
 
 class NewSalesTab extends BaseView {
   const NewSalesTab({super.key});
@@ -32,7 +42,8 @@ class NewSalesTab extends BaseView {
 }
 
 class _NewSalesTabState extends BaseViewState<NewSalesTab> {
-  final SaleBloc _bloc = inject<SaleBloc>();
+  final SaleBloc _salesBloc = inject<SaleBloc>();
+  final StockBloc _stockBloc = inject<StockBloc>();
   final TextEditingController _searchController = TextEditingController();
   final GlobalKey _searchKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
@@ -40,68 +51,41 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   bool _isRetail = true;
 
-  // Add a state variable for filter toggle
   bool _filtersEnabled = false;
 
-  // Multi-select functionality
   bool _isSelectionMode = false;
   Set<int> _selectedItems = {};
 
-  // Cart items list using Product model
-  List<CartProduct> _cartItems = [];
+  List<Stock> _cartItems = [];
 
-  // Add a list of all products and a filtered list
-  final List<Product> _allProducts = [
-    Product(
-        name: 'Abiman takkali 2.5g',
-        code: 'at25',
-        labelPrice: 1800.00,
-        qty: 13,
-        salePrice: 1520.00),
-    Product(
-        name: 'Red Apple Large',
-        code: 'ra01',
-        labelPrice: 1200.00,
-        qty: 20,
-        salePrice: 1100.00),
-    Product(
-        name: 'Green Grapes',
-        code: 'gg02',
-        labelPrice: 900.00,
-        qty: 15,
-        salePrice: 850.00),
-    Product(
-        name: 'Banana Premium',
-        code: 'bp03',
-        labelPrice: 600.00,
-        qty: 30,
-        salePrice: 550.00),
-    Product(
-        name: 'Orange Valencia',
-        code: 'ov04',
-        labelPrice: 1000.00,
-        qty: 10,
-        salePrice: 950.00),
-    Product(
-        name: 'Mango Alphonso',
-        code: 'ma05',
-        labelPrice: 2000.00,
-        qty: 8,
-        salePrice: 1800.00),
-    Product(
-        name: 'Pineapple Queen',
-        code: 'pq06',
-        labelPrice: 1500.00,
-        qty: 12,
-        salePrice: 1400.00),
-    Product(
-        name: 'Watermelon Large',
-        code: 'wl07',
-        labelPrice: 800.00,
-        qty: 18,
-        salePrice: 750.00),
-  ];
-  List<Product> _filteredProducts = [];
+  List<Stock> _allStocks = AppConstants.stockList ?? [];
+  List<Stock> _filteredStocks = [];
+
+  final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
+
+  String _ip = '192.168.0.100';
+  String _port = '9100';
+
+  List<Printer> printers = [];
+
+  StreamSubscription<List<Printer>>? _devicesStreamSubscription;
+
+  // Get Printer List
+  void startScan() async {
+    _devicesStreamSubscription?.cancel();
+    await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
+      ConnectionType.USB,
+    ]);
+    _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
+        .listen((List<Printer> event) {
+      log(event.map((e) => e.name).toList().toString());
+      setState(() {
+        printers = event;
+        printers.removeWhere(
+            (element) => element.name == null || element.name == '');
+      });
+    });
+  }
 
   void _toggleState() {
     setState(() {
@@ -109,26 +93,36 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     });
   }
 
+  stopScan() {
+    _flutterThermalPrinterPlugin.stopScan();
+  }
+
   @override
   void initState() {
     super.initState();
-    _bloc.add(SaleInitializedEvent());
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      startScan();
+    });
+    _stockBloc.add(GetStockEvent());
     _focusNode.addListener(() {
       setState(() {});
     });
-    _filteredProducts = List.from(_allProducts);
+    _filteredStocks = List.from(_allStocks);
     _searchController.addListener(_onSearchChanged);
+
+    _focusNode.requestFocus();
   }
 
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
       if (query.isEmpty) {
-        _filteredProducts = List.from(_allProducts);
+        _filteredStocks = List.from(_allStocks);
       } else {
-        _filteredProducts = _allProducts.where((product) {
-          return product.name.toLowerCase().contains(query) ||
-              product.code.toLowerCase().contains(query);
+        _filteredStocks = _allStocks.where((stock) {
+          return (stock.item?.description?.toLowerCase().contains(query) ??
+                  false) ||
+              (stock.item?.code?.toLowerCase().contains(query) ?? false);
         }).toList();
       }
     });
@@ -136,7 +130,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   void _deleteSelectedItems() {
     // Create a new list without selected items
-    final newCartItems = <CartProduct>[];
+    final newCartItems = <Stock>[];
 
     for (int i = 0; i < _cartItems.length; i++) {
       if (!_selectedItems.contains(i)) {
@@ -155,7 +149,20 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   void _incrementQuantity(int index) {
     if (index < _cartItems.length) {
       setState(() {
-        _cartItems[index].quantity = _cartItems[index].quantity + 1;
+        _cartItems[index] = Stock(
+          id: _cartItems[index].id,
+          item: _cartItems[index].item,
+          lablePrice: _cartItems[index].lablePrice,
+          itemCost: _cartItems[index].itemCost,
+          retailPrice: _cartItems[index].retailPrice,
+          wholesalePrice: _cartItems[index].wholesalePrice,
+          retailDiscount: _cartItems[index].retailDiscount,
+          wholesaleDiscount: _cartItems[index].wholesaleDiscount,
+          qty: _cartItems[index].qty,
+          status: _cartItems[index].status,
+          statusDescription: _cartItems[index].statusDescription,
+          cartQty: (_cartItems[index].cartQty ?? 0) + 1,
+        );
       });
     }
   }
@@ -179,8 +186,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   void _removeItemFromCart(int index) {
     if (index < _cartItems.length) {
-      final productName = _cartItems[index].name;
-      final newCartItems = <CartProduct>[];
+      final productName = _cartItems[index].item?.description ?? '';
+      final newCartItems = <Stock>[];
       for (int i = 0; i < _cartItems.length; i++) {
         if (i != index) {
           newCartItems.add(_cartItems[i]);
@@ -198,28 +205,43 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   void _decrementQuantity(int index) {
     if (index < _cartItems.length) {
-      int currentQty = _cartItems[index].quantity;
+      int currentQty = _cartItems[index].cartQty ?? 1;
       if (currentQty > 1) {
         setState(() {
-          _cartItems[index].quantity = currentQty - 1;
+          _cartItems[index] = Stock(
+            id: _cartItems[index].id,
+            item: _cartItems[index].item,
+            lablePrice: _cartItems[index].lablePrice,
+            itemCost: _cartItems[index].itemCost,
+            retailPrice: _cartItems[index].retailPrice,
+            wholesalePrice: _cartItems[index].wholesalePrice,
+            retailDiscount: _cartItems[index].retailDiscount,
+            wholesaleDiscount: _cartItems[index].wholesaleDiscount,
+            qty: _cartItems[index].qty,
+            status: _cartItems[index].status,
+            statusDescription: _cartItems[index].statusDescription,
+            cartQty: currentQty - 1,
+          );
         });
       } else {
         // Show confirmation dialog before removing item
-        _showRemoveItemConfirmation(index, _cartItems[index].name);
+        _showRemoveItemConfirmation(
+            index, _cartItems[index].item?.description ?? '');
       }
     }
   }
 
   double _calculateTotalPrice(int index) {
     if (index < _cartItems.length) {
-      return _cartItems[index].unitPrice * _cartItems[index].quantity;
+      return (_cartItems[index].retailPrice ?? 0) *
+          (_cartItems[index].cartQty ?? 0);
     }
     return 0.0;
   }
 
   double _calculateCartTotal() {
     return _cartItems.fold(0.0, (total, item) {
-      return total + (item.unitPrice * item.quantity);
+      return total + ((item.retailPrice ?? 0) * (item.cartQty ?? 0));
     });
   }
 
@@ -238,8 +260,12 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   //   });
   // }
 
-  bool _isProductInCart(String productCode) {
-    return _cartItems.any((item) => item.code == productCode);
+  bool _isProductInCart(String productCode, double labelPrice) {
+    return _cartItems.any((item) {
+      log(item.item!.code.toString());
+      return (item.item?.code == productCode) &&
+          (item.lablePrice == labelPrice);
+    });
   }
 
   void _showDuplicateItemToast() {
@@ -283,22 +309,33 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     ).show(context);
   }
 
-  void addProductToCart(Product product, int quantity, double price) {
-    final newId = _cartItems.length;
-    final newItem = CartProduct(
-      id: newId,
-      name: product.name,
-      code: product.code,
-      unitPrice: price,
-      quantity: quantity,
-      labelPrice: product.salePrice,
-      cost: 0,
-      stockQty: product.qty,
+  void addProductToCart(Stock stock, int quantity, double price) {
+    // Check if item already exists in cart (by code and label price)
+    final index = _cartItems.indexWhere((item) =>
+        item.item?.code == stock.item?.code &&
+        item.lablePrice == stock.lablePrice);
+    final cartStock = Stock(
+      id: stock.id,
+      item: stock.item,
+      lablePrice: stock.lablePrice,
+      itemCost: stock.itemCost,
+      retailPrice: price,
+      wholesalePrice: stock.wholesalePrice,
+      retailDiscount: stock.retailDiscount,
+      wholesaleDiscount: stock.wholesaleDiscount,
+      qty: stock.qty,
+      status: stock.status,
+      statusDescription: stock.statusDescription,
+      cartQty: quantity, // Store entered cart quantity
     );
     setState(() {
-      _cartItems.add(newItem);
+      if (index != -1) {
+        _cartItems[index] = cartStock;
+      } else {
+        _cartItems.add(cartStock);
+      }
     });
-    log(product.qty.toString());
+    log((cartStock.cartQty ?? 0).toString());
   }
 
   @override
@@ -311,20 +348,40 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   Widget buildView(BuildContext context) {
-    return BlocBuilder<SaleBloc, SaleState>(
-      bloc: _bloc,
-      builder: (context, state) {
-        if (state is SaleLoadedState) {
-          return _buildSalesContent(context, state);
-        }
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<StockBloc>(create: (context) => _stockBloc),
+        BlocProvider<SaleBloc>(create: (context) => _salesBloc),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<StockBloc, BaseState<StockState>>(
+              listener: (context, state) {
+            if (state is GetStockSuccessState) {
+              setState(() {
+                AppConstants.stockList = state.stockList;
+                _allStocks = _filteredStocks = state.stockList ?? [];
+              });
+            } else if (state is GetStockFailedState) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              AppDialogBox.show(
+                context,
+                title: 'Oops..!',
+                message: state.errorMsg,
+                image: AppImages.failedDialog,
+                isTwoButton: false,
+                positiveButtonTap: () {},
+                positiveButtonText: 'Try Again',
+              );
+            }
+          }),
+        ],
+        child: _buildSalesContent(context),
+      ),
     );
   }
 
-  Widget _buildSalesContent(BuildContext context, SaleLoadedState state) {
+  Widget _buildSalesContent(BuildContext context) {
     final String buttonText = _isRetail ? 'Retail' : 'Wholesale';
     final double textWidth = buttonText.length * 8.0;
 
@@ -415,7 +472,9 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     borderRadius: BorderRadius.circular(60),
                     splashColor: AppColors.darkBlue.withOpacity(0.1),
                     highlightColor: AppColors.darkBlue.withOpacity(0.1),
-                    onTap: () {},
+                    onTap: () {
+                      _stockBloc.add(GetStockEvent());
+                    },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 0),
@@ -562,9 +621,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 // Products Section
                 Expanded(
                   flex: 2,
-                  child: _searchController.text.isNotEmpty
-                      ? _productSection()
-                      : _suggestionSection(),
+                  child: true ? _productSection() : _suggestionSection(),
                 ),
 
                 const SizedBox(width: 10),
@@ -584,7 +641,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   List<BaseBloc<BaseEvent, BaseState>> getBlocs() {
-    return [_bloc];
+    return [_salesBloc, _stockBloc];
   }
 
   Widget _suggestionSection() {
@@ -611,287 +668,26 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 ),
                 Expanded(
                   child: SfDataGrid(
-                    // allowSorting: true,
                     allowColumnsResizing: true,
-                    // allowColumnsDragging: true,
-                    // frozenRowsCount: 2,
-                    // sortIconColor: AppColors.primaryColor,
-                    source: ProductDataSource([
-                      Product(
-                          name: 'Abiman takkali sdsd sdsd sds dfdf 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                      Product(
-                          name: 'Abiman takkali 2.5g',
-                          code: 'at25',
-                          labelPrice: 1800.00,
-                          qty: 13,
-                          salePrice: 1520.00),
-                    ]),
+                    source: StockDataSource(_filteredStocks),
                     onCellTap: (details) {
                       if (details.rowColumnIndex.rowIndex > 0) {
                         final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                        if (rowIndex < _filteredProducts.length) {
-                          final product = _filteredProducts[rowIndex];
-                          print(
-                              'Tapped product: Name: ${product.name}, Code: ${product.code}, Price: ${product.labelPrice}, other: ${product.qty}');
-
-                          // Check if product is already in cart
-                          if (_isProductInCart(product.code)) {
+                        if (rowIndex < _filteredStocks.length) {
+                          final stock = _filteredStocks[rowIndex];
+                          if (_isProductInCart(
+                              stock.item?.code ?? '', stock.lablePrice ?? 0)) {
                             _showDuplicateItemToast();
                           } else {
                             PopupWindow.show(
                               context,
-                              itemCode: product.code,
-                              itemName: product.name,
-                              labelPrice: product.labelPrice,
-                              salePrice: product.salePrice,
-                              // qty: product.qty,
-                              stockQty: product.qty,
-                              onAddToCart: (Product p, int qty, double price) {
-                                addProductToCart(p, qty, price);
+                              itemCode: stock.item?.code,
+                              itemName: stock.item?.description,
+                              labelPrice: stock.lablePrice,
+                              salePrice: stock.retailPrice,
+                              stockQty: stock.qty,
+                              onAddToCart: (Stock s, int qty, double price) {
+                                addProductToCart(s, qty, price);
                               },
                             );
                           }
@@ -902,7 +698,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       GridColumn(
                         columnName: 'name',
                         width: 300,
-                        // Set a wider width for item names
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
@@ -959,7 +754,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                       ),
                       GridColumn(
-                        columnName: 'salePrice',
+                        columnName: 'retailPrice',
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
@@ -971,12 +766,11 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           alignment: Alignment.center,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8.0, vertical: 12.0),
-                          child: Text('Sale Price',
+                          child: Text('Retail Price',
                               style: AppStyling.regular12Grey),
                         ),
                       ),
                     ],
-                    // headerRowHeight: 50,
                     rowHeight: 40,
                     gridLinesVisibility: GridLinesVisibility.horizontal,
                     headerGridLinesVisibility: GridLinesVisibility.horizontal,
@@ -1262,116 +1056,151 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
           ),
           // const SizedBox(height: 20),
           Expanded(
-            child: SfDataGrid(
-              allowSorting: _filtersEnabled,
-              allowColumnsResizing: true,
-              controller: _tableController,
-              // allowColumnsDragging: true,
-              // frozenRowsCount: 2,
-              // sortIconColor: AppColors.primaryColor,
-              source: ProductDataSource(_filteredProducts),
-              onCellTap: (details) {
-                if (details.rowColumnIndex.rowIndex > 0) {
-                  final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                  if (rowIndex < _filteredProducts.length) {
-                    final product = _filteredProducts[rowIndex];
-                    print(
-                        'Tapped product: Name: ${product.name}, Code: ${product.code}, Price: ${product.salePrice}');
-                    PopupWindow.show(
-                      context,
-                      itemCode: product.code,
-                      itemName: product.name,
-                      labelPrice: product.labelPrice,
-                      salePrice: product.salePrice,
-                      // qty: product.qty,
-                      stockQty: product.qty,
-                      onAddToCart: addProductToCart,
-                    );
-                  }
-                }
-              },
-              columns: [
-                GridColumn(
-                  columnName: 'name',
-                  width: 300,
-                  // Set a wider width for item names
-                  label: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
+            child: _filteredStocks.isNotEmpty
+                ? SfDataGrid(
+                    allowSorting: _filtersEnabled,
+                    allowColumnsResizing: true,
+                    controller: _tableController,
+                    // allowColumnsDragging: true,
+                    // frozenRowsCount: 2,
+                    // sortIconColor: AppColors.primaryColor,
+                    source: StockDataSource(_filteredStocks),
+                    onCellTap: (details) {
+                      if (details.rowColumnIndex.rowIndex > 0) {
+                        final rowIndex = details.rowColumnIndex.rowIndex - 1;
+                        if (rowIndex < _filteredStocks.length) {
+                          final stock = _filteredStocks[rowIndex];
+                          print(
+                              'Tapped product: Name: ${stock.item?.description}, Code: ${stock.item?.code}, Price: ${stock.itemCost}');
+                          if (_isProductInCart(
+                              stock.item?.code ?? '', stock.lablePrice ?? 0)) {
+                            _showDuplicateItemToast();
+                          } else {
+                            PopupWindow.show(
+                              context,
+                              stock: stock,
+                              itemCode: stock.item?.code,
+                              itemName: stock.item?.description,
+                              labelPrice: stock.lablePrice,
+                              salePrice: stock.retailPrice,
+                              stockQty: stock.qty,
+                              cost: stock.itemCost,
+                              onAddToCart: addProductToCart,
+                            );
+                          }
+                        }
+                      }
+                    },
+                    columns: [
+                      GridColumn(
+                        columnName: 'name',
+                        width: 300,
+                        // Set a wider width for item names
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.transparent,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              bottomLeft: Radius.circular(12),
+                            ),
+                          ),
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 12.0),
+                          child: Text(
+                            'Item Name',
+                            style: AppStyling.regular12Grey,
+                          ),
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 12.0),
-                    child: Text(
-                      'Item Name',
-                      style: AppStyling.regular12Grey,
-                    ),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'code',
-                  label: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 12.0),
-                    child: Text('Code', style: AppStyling.regular12Grey),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'labelPrice',
-                  label: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 12.0),
-                    child: Text('Label Price', style: AppStyling.regular12Grey),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'qty',
-                  width: 80,
-                  label: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 12.0),
-                    child: Text('QTY', style: AppStyling.regular12Grey),
-                  ),
-                ),
-                GridColumn(
-                  columnName: 'salePrice',
-                  label: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
+                      GridColumn(
+                        columnName: 'code',
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.transparent,
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 12.0),
+                          child: Text('Code', style: AppStyling.regular12Grey),
+                        ),
                       ),
+                      GridColumn(
+                        columnName: 'labelPrice',
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.transparent,
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 12.0),
+                          child: Text('Label Price',
+                              style: AppStyling.regular12Grey),
+                        ),
+                      ),
+                      GridColumn(
+                        columnName: 'qty',
+                        width: 80,
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.transparent,
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 12.0),
+                          child: Text('QTY', style: AppStyling.regular12Grey),
+                        ),
+                      ),
+                      GridColumn(
+                        columnName: 'salePrice',
+                        label: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.transparent,
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 12.0),
+                          child: Text('Sale Price',
+                              style: AppStyling.regular12Grey),
+                        ),
+                      ),
+                    ],
+                    // headerRowHeight: 50,
+                    rowHeight: 40,
+                    gridLinesVisibility: GridLinesVisibility.horizontal,
+                    headerGridLinesVisibility: GridLinesVisibility.horizontal,
+                    columnWidthMode: ColumnWidthMode.fill,
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          HugeIcons.strokeRoundedFileEmpty01,
+                          size: 100,
+                          color: AppColors.darkGrey.withOpacity(0.3),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No any Items',
+                          style: AppStyling.medium16Black.copyWith(
+                            color: AppColors.darkGrey.withOpacity(0.5),
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Add products to your shop',
+                          style: AppStyling.regular14Grey.copyWith(
+                            color: AppColors.darkGrey.withOpacity(0.4),
+                          ),
+                        ),
+                      ],
                     ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 12.0),
-                    child: Text('Sale Price', style: AppStyling.regular12Grey),
                   ),
-                ),
-              ],
-              // headerRowHeight: 50,
-              rowHeight: 40,
-              gridLinesVisibility: GridLinesVisibility.horizontal,
-              headerGridLinesVisibility: GridLinesVisibility.horizontal,
-              columnWidthMode: ColumnWidthMode.fill,
-            ),
           ),
         ],
       ),
@@ -1456,7 +1285,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                       ),
                       child: Text(
-                        'Delete (${_selectedItems.length})',
+                        'Delete',
                         style: AppStyling.medium12White,
                       ),
                     ),
@@ -1467,9 +1296,23 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           AppColors.red.withOpacity(0.2)),
                     ),
                     onPressed: () {
-                      setState(() {
-                        // _isSelectionMode = true;
-                      });
+                      // _isSelectionMode = true;
+                      AppDialogBox.show(
+                        context,
+                        title: 'Clear Cart',
+                        message: 'Are you sure you want to clear the cart?',
+                        image: AppImages.failedDialog,
+                        negativeButtonText: 'Cancel',
+                        negativeButtonTap: () {
+                          // Do nothing, just close the dialog
+                        },
+                        positiveButtonText: 'Remove',
+                        positiveButtonTap: () {
+                          setState(() {
+                            _filteredStocks.clear();
+                          });
+                        },
+                      );
                     },
                     icon: Icon(
                       HugeIcons.strokeRoundedDelete03,
@@ -1481,7 +1324,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               ],
             ),
           ),
-
+          1.5.verticalSpace,
           Expanded(
             child: false
                 ? const Center(
@@ -1519,13 +1362,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         itemCount: _cartItems.length,
                         itemBuilder: (context, index) {
                           final item = _cartItems[index];
-                          log(item.stockQty.toString());
+                          log((item.cartQty ?? 0).toString());
                           return CartItem(
-                            productName: item.name,
-                            productCode: item.code,
-                            unitPrice: item.unitPrice,
+                            productName: item.item?.description ?? '',
+                            productCode: item.item?.code ?? '',
+                            unitPrice: item.retailPrice ?? 0,
                             totalPrice: _calculateTotalPrice(index),
-                            quantity: item.quantity,
+                            quantity: item.cartQty ?? 0,
                             isLastItem: index == _cartItems.length - 1,
                             isSelectionMode: _isSelectionMode,
                             isSelected: _selectedItems.contains(index),
@@ -1540,12 +1383,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                                 });
                               } else {
                                 PopupWindow.show(context,
-                                    itemCode: item.code,
-                                    itemName: item.name,
-                                    labelPrice: item.labelPrice,
-                                    salePrice: item.unitPrice,
-                                    qty: item.quantity,
-                                    stockQty: item.stockQty,
+                                    stock: item,
+                                    itemCode: item.item?.code,
+                                    itemName: item.item?.description,
+                                    labelPrice: item.lablePrice,
+                                    salePrice: item.retailPrice,
+                                    qty: item.cartQty,
+                                    stockQty: item.qty,
+                                    cost: item.itemCost,
                                     onAddToCart: addProductToCart,
                                     isForEdit: true);
                               }
@@ -1652,7 +1497,96 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     child: Icon(HugeIcons.strokeRoundedCheckmarkBadge03),
                   ),
                   title: 'Checkout',
-                  onTap: () {},
+                  onTap: () async {
+                    startScan();
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final service = FlutterThermalPrinterNetwork(
+                      _ip,
+                      port: int.parse(_port),
+                    );
+                    await service.connect();
+                    final profile = await CapabilityProfile.load();
+                    final generator = Generator(PaperSize.mm80, profile);
+                    List<int> bytes = [];
+                    if (context.mounted) {
+                      bytes = await FlutterThermalPrinter.instance.screenShotWidget(
+                        context,
+                        generator: generator,
+                        widget: receiptWidget("Network"),
+                      );
+                      bytes += generator.cut();
+                      await service.printTicket(bytes);
+                    }
+                    await service.disconnect();
+                  },
+                  child: const Text('Test USB printer'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
+                    await service.connect();
+                    final bytes = await _generateReceipt();
+                    await service.printTicket(bytes);
+                    await service.disconnect();
+                  },
+                  child:  Text('Test network printer widget', style: AppStyling.medium12Black,),
+                ),
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 22),
+                Text(
+                  'USB/BLE',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 22),
+                ElevatedButton(
+                  onPressed: () {
+                    // startScan();
+                    startScan();
+                  },
+                  child:  Text('Get Printers', style: AppStyling.medium12Black),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // startScan();
+                    stopScan();
+                  },
+                  child:  Text('Stop Scan', style: AppStyling.medium12Black),
+                ),
+
+                const SizedBox(height: 12),
+                ListView.builder(
+                  itemCount: printers.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      onTap: () async {
+                        if (printers[index].isConnected ?? false) {
+                          await _flutterThermalPrinterPlugin.disconnect(printers[index]);
+                        } else {
+                          await _flutterThermalPrinterPlugin.connect(printers[index]);
+                        }
+                      },
+                      title: Text(printers[index].name ?? 'No Name'),
+                      subtitle: Text("Connected: ${printers[index].isConnected}"),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.connect_without_contact),
+                        onPressed: () async {
+                          await _flutterThermalPrinterPlugin.printWidget(
+                            context,
+                            printer: printers[index],
+                            printOnBle: true,
+                            widget: receiptWidget(
+                              printers[index].connectionTypeString,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -1663,34 +1597,20 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   }
 }
 
-class Product {
-  final String name;
-  final String code;
-  final double labelPrice;
-  final int qty;
-  final double salePrice;
-
-  Product({
-    required this.name,
-    required this.code,
-    required this.labelPrice,
-    required this.qty,
-    required this.salePrice,
-  });
-}
-
-class ProductDataSource extends DataGridSource {
+class StockDataSource extends DataGridSource {
   List<DataGridRow> _rows = [];
 
-  ProductDataSource(List<Product> products) {
-    _rows = products.map<DataGridRow>((product) {
+  StockDataSource(List<Stock> stocks) {
+    _rows = stocks.map<DataGridRow>((stock) {
       return DataGridRow(cells: [
-        DataGridCell<String>(columnName: 'name', value: product.name),
-        DataGridCell<String>(columnName: 'code', value: product.code),
+        DataGridCell<String>(
+            columnName: 'name', value: stock.item?.description ?? ''),
+        DataGridCell<String>(columnName: 'code', value: stock.item?.code ?? ''),
         DataGridCell<double>(
-            columnName: 'labelPrice', value: product.labelPrice),
-        DataGridCell<int>(columnName: 'qty', value: product.qty),
-        DataGridCell<double>(columnName: 'salePrice', value: product.salePrice),
+            columnName: 'labelPrice', value: stock.lablePrice ?? 0),
+        DataGridCell<int>(columnName: 'qty', value: stock.qty ?? 0),
+        DataGridCell<double>(
+            columnName: 'retailPrice', value: stock.retailPrice ?? 0),
       ]);
     }).toList();
   }
@@ -1703,11 +1623,10 @@ class ProductDataSource extends DataGridSource {
     bool isLowQty = row.getCells()[3].value < 10;
 
     return DataGridRowAdapter(
-      // color: Colors.blueGrey[50],
       cells: row.getCells().asMap().entries.map<Widget>((entry) {
         final idx = entry.key;
         final cell = entry.value;
-        final isSalePrice = cell.columnName == 'salePrice';
+        final isRetailPrice = cell.columnName == 'retailPrice';
         final isQty = cell.columnName == 'qty';
         final isName = cell.columnName == 'name';
 
@@ -1718,22 +1637,22 @@ class ProductDataSource extends DataGridSource {
                 ? BorderRadius.only(
                     topLeft: Radius.circular(60),
                     bottomLeft: Radius.circular(60))
-                : isSalePrice
+                : isRetailPrice
                     ? BorderRadius.only(
                         topRight: Radius.circular(60),
                         bottomRight: Radius.circular(60))
                     : BorderRadius.zero,
             color: isLowQty
-                ? AppColors.red.withOpacity(0.2)
+                ? AppColors.red.withOpacity(0.15)
                 : AppColors.bgColor.withOpacity(0.65),
           ),
           alignment: idx == 0 ? Alignment.centerLeft : Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
-          margin: EdgeInsets.fromLTRB(0, 2, isSalePrice ? 8 : 0, 2),
+          margin: EdgeInsets.fromLTRB(0, 2, isRetailPrice ? 8 : 0, 2),
           child: Text(
             cell.value is double
                 ? (cell.columnName == 'labelPrice' ||
-                        cell.columnName == 'salePrice')
+                        cell.columnName == 'retailPrice')
                     ? NumberFormat.currency(
                         locale: 'en_US',
                         symbol: '',
@@ -1744,22 +1663,99 @@ class ProductDataSource extends DataGridSource {
             overflow: TextOverflow.ellipsis,
             style: idx == 0
                 ? AppStyling.medium12Black
-                : isSalePrice
-                    ? AppStyling.medium12Black.copyWith(color: AppColors.green)
+                : isRetailPrice
+                    ? AppStyling.medium12Black
+                        .copyWith(color: Color(0xff1a932f))
                     : isQty
                         ? AppStyling.semi12Black.copyWith(
                             color: isLowQty
                                 ? AppColors.red
                                 : CupertinoColors.activeBlue)
                         : AppStyling.medium12Black,
-            // style: TextStyle(
-            //   fontWeight: idx == 0 ? FontWeight.bold : FontWeight.normal,
-            //   color: isSalePrice ? Colors.green : Colors.black87,
-            //   fontSize: 16,
-            // ),
           ),
         );
       }).toList(),
     );
   }
+}
+
+Future<List<int>> _generateReceipt() async {
+  final profile = await CapabilityProfile.load();
+  final generator = Generator(PaperSize.mm80, profile);
+  List<int> bytes = [];
+  bytes += generator.text(
+    "Teste Network print",
+    styles: PosStyles(
+      bold: true,
+      height: PosTextSize.size3,
+      width: PosTextSize.size3,
+    ),
+  );
+  bytes += generator.cut();
+  return bytes;
+}
+
+Widget receiptWidget(String printerType) {
+  return SizedBox(
+    width: 550,
+    child: Material(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Center(
+              child: Text(
+                'FLUTTER THERMAL PRINTER',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Divider(thickness: 2),
+            const SizedBox(height: 10),
+            _buildReceiptRow('Item', 'Price'),
+            const Divider(),
+            _buildReceiptRow('Apple', '\$1.00'),
+            _buildReceiptRow('Banana', '\$0.50'),
+            _buildReceiptRow('Orange', '\$0.75'),
+            const Divider(thickness: 2),
+            _buildReceiptRow('Total', '\$2.25', isBold: true),
+            const SizedBox(height: 20),
+            _buildReceiptRow('Printer Type', printerType),
+            const SizedBox(height: 50),
+            const Center(
+              child: Text(
+                'Thank you for your purchase!',
+                style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _buildReceiptRow(String leftText, String rightText,
+    {bool isBold = false}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          leftText,
+          style: TextStyle(
+              fontSize: 16,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+        ),
+        Text(
+          rightText,
+          style: TextStyle(
+              fontSize: 16,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+        ),
+      ],
+    ),
+  );
 }

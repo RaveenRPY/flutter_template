@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
 import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
-import 'package:AventaPOS/features/presentation/views/new_sale/new_sales_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +9,7 @@ import 'package:sizer/sizer.dart';
 
 import 'app_colors.dart';
 import 'app_stylings.dart';
+import 'package:AventaPOS/features/data/models/responses/sale/get_stock.dart';
 
 class PopupWindow extends StatefulWidget {
   String? itemName;
@@ -20,7 +20,8 @@ class PopupWindow extends StatefulWidget {
   int? stockQty;
   double? salePrice;
   bool? isForEdit;
-  final void Function(Product, int, double)? onAddToCart;
+  final void Function(Stock, int, double)? onAddToCart;
+  Stock? stock;
 
   PopupWindow(
       {super.key,
@@ -28,10 +29,12 @@ class PopupWindow extends StatefulWidget {
       this.itemCode,
       this.labelPrice,
       this.salePrice,
+      this.cost,
       this.qty,
       this.stockQty,
       this.isForEdit,
-      this.onAddToCart});
+      this.onAddToCart,
+      this.stock});
 
   @override
   State<PopupWindow> createState() => _PopupWindowState();
@@ -46,7 +49,8 @@ class PopupWindow extends StatefulWidget {
     int? stockQty,
     double? salePrice,
     bool? isForEdit,
-    void Function(Product, int, double)? onAddToCart,
+    Stock? stock,
+    void Function(Stock, int, double)? onAddToCart,
   }) {
     showGeneralDialog(
       context: context,
@@ -66,11 +70,13 @@ class PopupWindow extends StatefulWidget {
               stockQty: stockQty,
               onAddToCart: onAddToCart,
               isForEdit: isForEdit ?? false,
+              stock: stock,
+              cost: cost,
             ),
           ),
         );
       },
-      transitionDuration: const Duration(milliseconds: 200),
+      transitionDuration: const Duration(milliseconds: 150),
       pageBuilder: (context, animation, secondaryAnimation) {
         return const SizedBox.shrink();
       },
@@ -92,6 +98,9 @@ class _PopupWindowState extends State<PopupWindow> {
   late double _salePrice;
   late int _qty;
 
+  bool isCustomSalePriceValidated = true;
+  bool isQtyValidated = true;
+
   @override
   void initState() {
     super.initState();
@@ -101,10 +110,22 @@ class _PopupWindowState extends State<PopupWindow> {
     _stockController.text = widget.stockQty.toString();
 
     _qtyFocusNode.requestFocus();
-    _qtyController.text = (widget.qty ?? "1").toString();
+    _qtyController.text = (widget.qty ?? (widget.stockQty == 0 ? 0 : 1)).toString();
 
     _salePrice = widget.salePrice ?? 0;
     _qty = int.parse(_qtyController.text);
+
+    // Initial validation for qty and custom sale price
+    isQtyValidated = _qty > 0;
+    isCustomSalePriceValidated = true;
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    setState(() {
+      _newSalePriceFormKey.currentState?.validate();
+      _qtyFormKey.currentState?.validate();
+    });
   }
 
   @override
@@ -224,15 +245,27 @@ class _PopupWindowState extends State<PopupWindow> {
                                     if (double.parse(
                                             price.replaceAll(',', '')) >
                                         widget.labelPrice!) {
+                                      setState(() {
+                                        isCustomSalePriceValidated = false;
+                                      });
                                       return 'Sale price can\'t exceed the MRP';
                                     } else if (double.parse(
                                             price.replaceAll(',', '')) <
                                         (widget.cost ?? 1000)) {
+                                      setState(() {
+                                        isCustomSalePriceValidated = false;
+                                      });
                                       return 'Please enter a higher price';
                                     }
                                   } else {
+                                    setState(() {
+                                      isCustomSalePriceValidated = false;
+                                    });
                                     return 'Price can\'t be null';
                                   }
+                                  setState(() {
+                                    isCustomSalePriceValidated = true;
+                                  });
                                   return null;
                                 },
                               ),
@@ -255,14 +288,26 @@ class _PopupWindowState extends State<PopupWindow> {
                                 label: "Qty",
                                 validator: (qty) {
                                   if (qty != null) {
-                                    if (int.parse(qty) > widget.qty!) {
+                                    if (int.parse(qty) > widget.stockQty!) {
+                                      setState(() {
+                                        isQtyValidated = false;
+                                      });
                                       return 'Not enough stock. Choose a lower quantity';
                                     } else if (int.parse(qty) == 0) {
+                                      setState(() {
+                                        isQtyValidated = false;
+                                      });
                                       return 'Qty cannot be zero';
                                     }
                                   } else {
+                                    setState(() {
+                                      isQtyValidated = false;
+                                    });
                                     return 'Qty cannot be null';
                                   }
+                                  setState(() {
+                                    isQtyValidated = true;
+                                  });
                                   return null;
                                 },
                                 textInputType: TextInputType.number,
@@ -277,7 +322,7 @@ class _PopupWindowState extends State<PopupWindow> {
                                 },
                               ),
                               onChanged: () {
-                                // _qtyFormKey.currentState?.validate();
+                                _qtyFormKey.currentState?.validate();
                               },
                             ),
                           ),
@@ -347,17 +392,12 @@ class _PopupWindowState extends State<PopupWindow> {
                           Expanded(
                               child: AppMainButton(
                             title: widget.isForEdit! ? "Save" : "Add to Cart",
+                            isEnable: (isQtyValidated && isCustomSalePriceValidated && _qty > 0),
                             onTap: () {
                               // Create a Product object and add to cart
                               if (widget.onAddToCart != null) {
-                                final product = Product(
-                                  name: widget.itemName ?? '',
-                                  code: widget.itemCode ?? '',
-                                  labelPrice: widget.labelPrice ?? 0,
-                                  qty: widget.qty?.toInt() ?? 0,
-                                  salePrice: _salePrice,
-                                );
-                                widget.onAddToCart!(product, _qty, _salePrice);
+                                widget.onAddToCart!(
+                                    widget.stock!, _qty, _salePrice);
                               }
                               Navigator.pop(context);
                             },

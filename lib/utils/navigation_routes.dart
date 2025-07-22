@@ -1,4 +1,5 @@
 import 'package:AventaPOS/features/presentation/views/login/login_view.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/process_payment_view.dart';
 import 'package:AventaPOS/features/presentation/views/splash/splash_view.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,7 @@ class Routes {
   static const String kSplashView = "kSplashView";
   static const String kSaleView = "kSaleView";
   static const String kLoginView = "kLoginView";
+  static const String kPaymentView = "kPaymentView";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     Widget page;
@@ -22,6 +24,9 @@ class Routes {
         break;
       case Routes.kLoginView:
         page = const LoginView();
+        break;
+      case Routes.kPaymentView:
+        page =  ProcessPaymentView(params: settings.arguments as PaymentParams,);
         break;
       default:
         page = Scaffold(

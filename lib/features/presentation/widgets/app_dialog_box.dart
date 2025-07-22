@@ -35,7 +35,7 @@ class AppDialogBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+      filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
       child: Container(
         alignment: FractionalOffset.center,
         padding: const EdgeInsets.all(25),
@@ -74,6 +74,7 @@ class AppDialogBox extends StatelessWidget {
                       ),
                       5.verticalSpace,
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           if (isTwoButton!)
                             Expanded(

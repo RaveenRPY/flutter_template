@@ -96,7 +96,7 @@ abstract class BaseViewState<Page extends BaseView> extends State<Page> {
               child: Opacity(
                 opacity: a1.value,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaY: 10, sigmaX: 10),
+                  filter: ImageFilter.blur(sigmaY: 3, sigmaX: 3),
                   child: Container(
                     alignment: FractionalOffset.center,
                     child: Wrap(

@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   flutter_secure_storage_windows
+  flutter_thermal_printer
   flutter_udid
   local_auth_windows
   permission_handler_windows

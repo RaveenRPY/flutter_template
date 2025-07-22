@@ -86,10 +86,9 @@ class _AventaFormFieldState extends State<AventaFormField> {
       _moneyMaskedTextController = MoneyMaskedTextController(
         decimalSeparator: '.',
         thousandSeparator: ',',
-        initialValue:
-            widget.controller.text.isEmpty
-                ? null
-                : double.tryParse(widget.controller.text.replaceAll(",", "")),
+        initialValue: widget.controller.text.isEmpty
+            ? null
+            : double.tryParse(widget.controller.text.replaceAll(",", "")),
       );
 
       // Add listener for currency field changes
@@ -107,12 +106,11 @@ class _AventaFormFieldState extends State<AventaFormField> {
 
   void _onFocusChange() {
     setState(() {
-      _labelStyle =
-          _focusNode.hasFocus
-              ? AppStyling.medium14Black.copyWith(
-                color: AppColors.primaryColor,
-              )
-              : AppStyling.regular12Grey.copyWith(color: AppColors.darkGrey);
+      _labelStyle = _focusNode.hasFocus
+          ? AppStyling.medium14Black.copyWith(
+              color: AppColors.primaryColor,
+            )
+          : AppStyling.regular12Grey.copyWith(color: AppColors.darkGrey);
     });
   }
 
@@ -127,8 +125,8 @@ class _AventaFormFieldState extends State<AventaFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      onEditingComplete: (){
-        if(widget.onCompleted != null) widget.onCompleted!();
+      onEditingComplete: () {
+        if (widget.onCompleted != null) widget.onCompleted!();
       },
       onChanged: widget.onChanged,
       controller:
@@ -136,10 +134,9 @@ class _AventaFormFieldState extends State<AventaFormField> {
       keyboardType:
           widget.isCurrency ? TextInputType.number : widget.textInputType,
       maxLength: widget.maxLength,
-      style:
-          widget.isReadOnly!
-              ? AppStyling.regular14Black
-              : AppStyling.medium14Black,
+      style: widget.isReadOnly!
+          ? AppStyling.regular14Black
+          : AppStyling.medium14Black,
       cursorColor: AppColors.primaryColor,
       cursorErrorColor: AppColors.errorColor,
       obscureText: isPasswordHide,
@@ -160,22 +157,20 @@ class _AventaFormFieldState extends State<AventaFormField> {
       readOnly: widget.isReadOnly!,
       decoration: InputDecoration(
         // Add currency prefix when in currency mode and focused
-        prefix:
-            widget.isCurrency && widget.showCurrencySymbol
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Text('Rs', style: AppStyling.regular14Black),
-                )
-                : null,
+        prefix: widget.isCurrency && widget.showCurrencySymbol
+            ? Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Text('Rs', style: AppStyling.regular14Black),
+              )
+            : null,
         prefixIcon: widget.prefixIcon,
         counterText: widget.counterText,
         prefixIconColor: widget.prefixIconColor,
         errorMaxLines: 2,
         floatingLabelStyle: AppStyling.medium14Black.copyWith(
-          color:
-              _focusNode.hasFocus
-                  ? AppColors.primaryColor
-                  : !widget.isForEdit!
+          color: _focusNode.hasFocus
+              ? AppColors.primaryColor
+              : !widget.isForEdit!
                   ? AppColors.darkGrey
                   : AppColors.primaryColor,
         ),
@@ -188,33 +183,31 @@ class _AventaFormFieldState extends State<AventaFormField> {
         labelStyle: _labelStyle,
         focusColor: AppColors.primaryColor,
         // Password visibility toggle
-        suffixIcon:
-            widget.isObsecure
-                ? Material(
-                  color: AppColors.transparent,
-                  child: InkWell(
-                    radius: 8,
-                    borderRadius: BorderRadius.circular(5),
-                    highlightColor: AppColors.transparent,
-                    splashColor: AppColors.primaryColor.withOpacity(0.4),
-                    onTap: () {
-                      setState(() {
-                        isPasswordHide = !isPasswordHide;
-                      });
-                    },
-                    child: Icon(
-                      isPasswordHide ? Icons.visibility_off : Icons.visibility,
-                      size: 20,
-                    ),
+        suffixIcon: widget.isObsecure
+            ? Material(
+                color: AppColors.transparent,
+                child: InkWell(
+                  radius: 8,
+                  borderRadius: BorderRadius.circular(5),
+                  highlightColor: AppColors.transparent,
+                  splashColor: AppColors.primaryColor.withOpacity(0.4),
+                  onTap: () {
+                    setState(() {
+                      isPasswordHide = !isPasswordHide;
+                    });
+                  },
+                  child: Icon(
+                    isPasswordHide ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
                   ),
-                )
-                : null,
+                ),
+              )
+            : null,
         suffixIconColor: AppColors.primaryColor,
         filled: true,
-        fillColor:
-            widget.isEnable!
-                ? widget.filledColor ?? AppColors.bgColor.withOpacity(0.0)
-                : AppColors.darkGrey.withOpacity(0.05),
+        fillColor: widget.isEnable!
+            ? widget.filledColor ?? AppColors.bgColor.withOpacity(0.0)
+            : AppColors.darkGrey.withOpacity(0.05),
         errorStyle: AppStyling.regular10Black.copyWith(
           color: AppColors.errorColor,
         ),
@@ -226,30 +219,29 @@ class _AventaFormFieldState extends State<AventaFormField> {
           borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(color: AppColors.errorColor, width: 1.5),
         ),
-        enabledBorder:
-            (!widget.isReadOnly!)
-                ? !widget.isForEdit!
+        enabledBorder: (!widget.isReadOnly!)
+            ? !widget.isForEdit!
                 ? OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(
-                color: AppColors.darkBlue.withOpacity(0.2),
-                width: 1.5,
-              ),
-            )
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: AppColors.darkBlue.withOpacity(0.28),
+                      width: 1.5,
+                    ),
+                  )
                 : OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: const BorderSide(
-                color: AppColors.primaryColor,
-                width: 1.5,
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryColor,
+                      width: 1.5,
+                    ),
+                  )
+            : OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide:  BorderSide(
+                  color: AppColors.darkBlue.withOpacity(0.1),
+                  width: 1.5,
+                ),
               ),
-            )
-                : OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: const BorderSide(
-                color: AppColors.transparent,
-                width: 0,
-              ),
-            ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(

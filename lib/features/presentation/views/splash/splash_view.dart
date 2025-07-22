@@ -18,7 +18,7 @@ class _SplashViewState extends BaseViewState<SplashView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 2), () {
       Navigator.pushReplacementNamed(context, Routes.kLoginView);
     });
   }

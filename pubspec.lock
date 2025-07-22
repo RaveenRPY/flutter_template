@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.0.0"
+  bluez:
+    dependency: transitive
+    description:
+      name: bluez
+      sha256: "61a7204381925896a374301498f2f5399e59827c6498ae1e924aaa598751b545"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -89,6 +97,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
+  csslib:
+    dependency: transitive
+    description:
+      name: csslib
+      sha256: "09bad715f418841f976c77db72d5398dc1253c21fb9c0c7f0b0b985860b2d58e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -161,6 +177,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
+  esc_pos_utils_plus:
+    dependency: transitive
+    description:
+      name: esc_pos_utils_plus
+      sha256: "2a22d281cb6f04600ba3ebd607ad8df03a4b2446d814007d22525bab4d50c2ff"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.4"
   extended_masked_text:
     dependency: "direct main"
     description:
@@ -206,6 +230,62 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.0"
+  flutter_blue_plus:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus
+      sha256: bfae0d24619940516261045d8b3c74b4c80ca82222426e05ffbf7f3ea9dbfb1a
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.35.5"
+  flutter_blue_plus_android:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus_android
+      sha256: "9723dd4ba7dcc3f27f8202e1159a302eb4cdb88ae482bb8e0dd733b82230a258"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.5"
+  flutter_blue_plus_darwin:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus_darwin
+      sha256: f34123795352a9761e321589aa06356d3b53f007f13f7e23e3c940e733259b2d
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
+  flutter_blue_plus_linux:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus_linux
+      sha256: "635443d1d333e3695733fd70e81ee0d87fa41e78aa81844103d2a8a854b0d593"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
+  flutter_blue_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus_platform_interface
+      sha256: a4bb70fa6fd09e0be163b004d773bf19e31104e257a4eb846b67f884ddd87de2
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.2"
+  flutter_blue_plus_web:
+    dependency: transitive
+    description:
+      name: flutter_blue_plus_web
+      sha256: "03023c259dbbba1bc5ce0fcd4e88b364f43eec01d45425f393023b9b2722cf4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
+  flutter_esc_pos_utils:
+    dependency: "direct main"
+    description:
+      name: flutter_esc_pos_utils
+      sha256: "2186973896d2dac3d5ebb2e09dac963001d29cd9e683f23afe8dbd5fb4013356"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -283,6 +363,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_thermal_printer:
+    dependency: "direct main"
+    description:
+      name: flutter_thermal_printer
+      sha256: "9c7daa4bbb581103af79ed771d891e01fc84b13d9c19eac65dd4ba7a0ce27839"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1+1"
   flutter_udid:
     dependency: "direct main"
     description:
@@ -291,6 +379,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  flutter_usb_printer:
+    dependency: "direct main"
+    description:
+      name: flutter_usb_printer
+      sha256: "5e83c1e03cdedd2e41ad3f3a2ce7c628fdcc489d03b5b40e3020e2df4ea1ce40"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0+1"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -304,6 +400,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.8.0"
+  gbk_codec:
+    dependency: transitive
+    description:
+      name: gbk_codec
+      sha256: "3af5311fc9393115e3650ae6023862adf998051a804a08fb804f042724999f61"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
   get_it:
     dependency: "direct main"
     description:
@@ -320,6 +424,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.2.1"
+  hex:
+    dependency: transitive
+    description:
+      name: hex
+      sha256: "4e7cd54e4b59ba026432a6be2dd9d96e4c5205725194997193bf871703b82c4a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  html:
+    dependency: transitive
+    description:
+      name: html
+      sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.15.6"
   http:
     dependency: transitive
     description:
@@ -344,6 +464,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.11"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: "4e973fcf4caae1a4be2fa0a13157aa38a8f9cb049db6529aa00b4d71abc4d928"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.5.4"
   intl:
     dependency: "direct main"
     description:
@@ -656,6 +784,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.4"
+  rxdart:
+    dependency: transitive
+    description:
+      name: rxdart
+      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.28.0"
+  screenshot:
+    dependency: transitive
+    description:
+      name: screenshot
+      sha256: "63817697a7835e6ce82add4228e15d233b74d42975c143ad8cfe07009fab866b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -861,6 +1005,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  win_ble:
+    dependency: transitive
+    description:
+      name: win_ble
+      sha256: "2a867e13c4b355b101fc2c6e2ac85eeebf965db34eca46856f8b478e93b41e96"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   xdg_directories:
     dependency: transitive
     description:
