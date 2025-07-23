@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
 import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
 import 'package:AventaPOS/features/presentation/views/new_sale/new_sales_tab.dart';
+import 'package:AventaPOS/utils/app_constants.dart';
 import 'package:AventaPOS/utils/navigation_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,7 +67,7 @@ class _PopupWindowState extends State<OpeningBalance> {
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Center(
           child: Container(
-            width: 25.w,
+            width: 30.w,
             constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
             decoration: BoxDecoration(
                 color: AppColors.whiteColor,
@@ -91,15 +92,23 @@ class _PopupWindowState extends State<OpeningBalance> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 40),
+                        padding: const EdgeInsets.only(top: 30),
                         child: Text(
                           "Cashier Opening Balance",
                           style:
-                              AppStyling.medium25Black.copyWith(fontSize: 26),
+                              AppStyling.medium25Black.copyWith(fontSize: 27),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Text(
+                          "Add opening balance to : ${AppConstants.profileData?.username} @ ${AppConstants.profileData?.location?.description}",
+                          style:
+                              AppStyling.regular14Black,
                         ),
                       ),
 
-                      SizedBox(height: 60),
+                      SizedBox(height: 40),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -145,7 +154,6 @@ class _PopupWindowState extends State<OpeningBalance> {
 
                       SizedBox(height: 30),
 
-                      SizedBox(height: 2.5.h),
 
                       // Action Buttons
                       AppMainButton(

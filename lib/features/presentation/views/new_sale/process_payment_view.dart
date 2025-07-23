@@ -1,26 +1,663 @@
+import 'dart:async';
+import 'dart:developer';
+
+import 'package:AventaPOS/core/services/dependency_injection.dart';
+import 'package:AventaPOS/features/data/models/requests/checkout.dart';
+import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_bloc.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_event.dart';
+import 'package:AventaPOS/features/presentation/bloc/stock/stock_state.dart';
+import 'package:AventaPOS/features/presentation/views/base_view.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/data/sales_invoice_data.dart';
+import 'package:AventaPOS/features/presentation/views/new_sale/widgets/bill_preview_widget.dart';
+import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
+import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
+import 'package:AventaPOS/utils/app_constants.dart';
+import 'package:AventaPOS/utils/app_stylings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
+import 'package:flutter_thermal_printer/flutter_thermal_printer.dart'
+    hide
+        CapabilityProfile,
+        Generator,
+        PaperSize,
+        PosStyles,
+        PosAlign,
+        PosTextSize;
+import 'package:flutter_thermal_printer/utils/printer.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sizer/sizer.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../utils/app_colors.dart';
+import '../../../../utils/app_images.dart';
+import '../../../../utils/enums.dart';
 import '../../../data/models/responses/sale/get_stock.dart';
+import '../../widgets/app_dialog_box.dart';
+import '../../widgets/zynolo_toast.dart';
 
-class ProcessPaymentView extends StatefulWidget {
+class ProcessPaymentView extends BaseView {
   final PaymentParams params;
-  const ProcessPaymentView(
-      {super.key, required this.params});
+
+  const ProcessPaymentView({super.key, required this.params});
 
   @override
   State<ProcessPaymentView> createState() => _ProcessPaymentViewState();
 }
 
-class _ProcessPaymentViewState extends State<ProcessPaymentView> {
+class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
+  final StockBloc _bloc = inject<StockBloc>();
+  final TextEditingController _customerPaidController = TextEditingController();
+  double _customerPaid = 0.0;
+  String _paymentType = 'Cash';
+  List<BillingItem> _billingItemList = [];
+
+  final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
+  SalesInvoiceData invoiceData = SalesInvoiceData();
+
+  final String _ip = '192.168.123.123';
+  final String _port = '9100';
+
+  final FocusNode _focusNode = FocusNode();
+
+  List<Printer> printers = [];
+
+  StreamSubscription<List<Printer>>? _devicesStreamSubscription;
+
+  // Get Printer List
+  void startScan() async {
+    _devicesStreamSubscription?.cancel();
+    await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
+      ConnectionType.NETWORK,
+    ]);
+    _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
+        .listen((List<Printer> event) {
+      log(event.map((e) => e.name).toList().toString());
+      setState(() {
+        printers = event;
+        printers.removeWhere(
+            (element) => element.name == null || element.name == '');
+      });
+    });
+  }
+
+  stopScan() {
+    _flutterThermalPrinterPlugin.stopScan();
+  }
+
+  String _formatCurrency(double amount) {
+    return NumberFormat.currency(
+      locale: 'en_US',
+      symbol: 'Rs. ',
+      decimalDigits: 2,
+    ).format(amount);
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
+  void dispose() {
+    // _customerPaidController.dispose();
+    super.dispose();
+  }
+
+  List<BillingItem> convertStockToBillingItems(List<Stock> stocks) {
+    return stocks
+        .map((stock) => BillingItem(
+              qty: stock.cartQty ?? stock.qty,
+              salesPrice: stock.retailPrice,
+              salesDiscount: 0,
+              stock: stock.id,
+            ))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      startScan();
+    });
+    _focusNode.requestFocus();
+    _billingItemList = convertStockToBillingItems(widget.params.cartItemList);
+  }
+
+  void printBill({
+    required List<Stock> itemList,
+    required String invoiceNo,
+    required DateTime invoiceDate,
+    required String cashier,
+    required String paymentType,
+    required String outlet,
+    required String total,
+    required String cash,
+    required String changes,
+  }) async {
+    final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
+    await service.connect();
+    final bytes = await _generateReceipt(
+      itemList: itemList,
+      invoiceNo: invoiceNo,
+      invoiceDate: invoiceDate,
+      cashier: cashier,
+      paymentType: paymentType,
+      outlet: outlet,
+      total: total,
+      cash: cash,
+      changes: changes,
+    );
+    await service.printTicket(bytes);
+    await service.disconnect();
+  }
+
+  @override
+  Widget buildView(BuildContext context) {
+    final grandTotal = widget.params.total;
+    final change = _customerPaid - grandTotal;
+    final itemList = widget.params.cartItemList;
+
+    return BlocProvider<StockBloc>(
+      create: (context) => _bloc,
+      child: BlocListener<StockBloc, BaseState<StockState>>(
+        listener: (context, state) {
+          if (state is CheckoutSuccessState) {
+            setState(() {
+              invoiceData.paymentType = state.response?.paymentTypeDescription;
+              invoiceData.invoiceNo = state.response?.invoiceNumber;
+              invoiceData.invoiceDate = state.response?.invoiceDate;
+              invoiceData.outlet = state.response?.outletName;
+              invoiceData.counter = state.response?.counter;
+              invoiceData.itemList = itemList;
+              invoiceData.total = _formatCurrency(grandTotal);
+              invoiceData.cash = _formatCurrency(_customerPaid);
+              invoiceData.changes = _formatCurrency(change);
+
+              printBill(
+                itemList: itemList,
+                invoiceNo: state.response?.invoiceNumber ?? '',
+                invoiceDate: state.response?.invoiceDate ?? DateTime.now(),
+                cashier: state.response?.counter ?? '',
+                paymentType: state.response?.paymentTypeDescription ?? '',
+                outlet: state.response?.outletName ?? '',
+                total: grandTotal.toString(),
+                cash: _customerPaid.toString(),
+                changes: change.toString(),
+              );
+            });
+
+            ZynoloToast(
+              title: state.msg,
+              toastType: Toast.success,
+              animationDuration: Duration(milliseconds: 500),
+              toastPosition: Position.top,
+              animationType: AnimationType.fromTop,
+              backgroundColor: AppColors.whiteColor.withOpacity(1),
+            ).show(context);
+            // setState(() {
+            //   widget.params.onPop!(true);
+            // });
+          } else if (state is CheckoutFailedState) {
+            FocusManager.instance.primaryFocus?.unfocus();
+            AppDialogBox.show(
+              context,
+              title: 'Oops..!',
+              message: state.errorMsg,
+              image: AppImages.failedDialog,
+              isTwoButton: false,
+              positiveButtonTap: () {},
+              positiveButtonText: 'Try Again',
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: 45,
+                    child: Material(
+                      color: AppColors.whiteColor,
+                      borderRadius: BorderRadius.circular(60),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(60),
+                        splashColor: AppColors.darkBlue.withOpacity(0.1),
+                        highlightColor: AppColors.darkBlue.withOpacity(0.1),
+                        onTap: () {
+                          setState(() {
+                            widget.params.onPop!(false);
+                          });
+                        },
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: Center(
+                            child: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 20,
+                              color: AppColors.darkBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  Text(
+                    "Proceed Payment",
+                    style: AppStyling.medium20Black,
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: AppColors.whiteColor),
+                        child: ReceiptPreview(
+                          cash: _customerPaid.toString(),
+                          cashier: "Cashier Name",
+                          changes: change.toString(),
+                          invoiceDate: DateTime.now(),
+                          invoiceNo: "XXXXXXXXXX",
+                          outlet: AppConstants.profileData!.location!.description.toString(),
+                          paymentType: "Cash",
+                          total: grandTotal.toString(),
+                          itemList: itemList,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 14,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: AppColors.whiteColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.darkGrey.withOpacity(0.07),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text('Grand Total',
+                                style: AppStyling.medium14Black),
+                            SizedBox(height: 6),
+                            Text(
+                              _formatCurrency(grandTotal),
+                              style:
+                                  AppStyling.bold18Black.copyWith(fontSize: 28),
+                            ),
+                            Divider(
+                                height: 32,
+                                thickness: 1,
+                                color: AppColors.lineSeparationColor),
+                            Text('Customer Paid',
+                                style: AppStyling.medium14Black),
+                            SizedBox(height: 6),
+                            AventaFormField(
+                              controller: _customerPaidController,
+                              focusNode: _focusNode,
+                              isCurrency: true,
+                              onChanged: (val) {
+                                setState(() {
+                                  _customerPaid = double.tryParse(
+                                          val.replaceAll(',', '')) ??
+                                      0.0;
+                                });
+                              },
+                            ),
+                            SizedBox(height: 18),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Change to Return',
+                                    style: AppStyling.medium14Black),
+                                Text(
+                                  _formatCurrency(change),
+                                  style: AppStyling.semi14Black.copyWith(
+                                    color:
+                                        change < 0 ? Colors.red : Colors.green,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Divider(
+                                height: 32,
+                                thickness: 1,
+                                color: AppColors.lineSeparationColor),
+                            Text('Payment Type',
+                                style: AppStyling.medium14Black),
+                            SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    value: 'Cash',
+                                    groupValue: _paymentType,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _paymentType = val!;
+                                      });
+                                    },
+                                    title: Text('Cash',
+                                        style: AppStyling.medium12Black),
+                                    activeColor: AppColors.primaryColor,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    value: 'Card',
+                                    groupValue: _paymentType,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _paymentType = val!;
+                                      });
+                                    },
+                                    title: Text('Card',
+                                        style: AppStyling.medium12Black),
+                                    activeColor: AppColors.primaryColor,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Spacer(),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: AppMainButton(
+                                    title: 'Cancel',
+                                    isNegative: true,
+                                    color: AppColors.darkGrey.withOpacity(0.15),
+                                    titleStyle: AppStyling.medium14Black
+                                        .copyWith(color: AppColors.darkGrey),
+                                    onTap: () {
+                                      AppDialogBox.show(
+                                        context,
+                                        title: 'Cancel Payment',
+                                        message:
+                                            'Are you sure you want to cancel the payment ?',
+                                        image: AppImages.failedDialog,
+                                        negativeButtonText: 'No',
+                                        negativeButtonTap: () {
+                                          // Do nothing, just close the dialog
+                                        },
+                                        positiveButtonText: 'Yes',
+                                        positiveButtonTap: () {
+                                          setState(() {
+                                            widget.params.onPop!();
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Expanded(
+                                  child: AppMainButton(
+                                    title: 'Complete Payment',
+                                    onTap: (_customerPaid >= grandTotal)
+                                        ? () {
+                                            _bloc.add(CheckOutEvent(
+                                                remark: "",
+                                                salesType: "NORMAL",
+                                                paymentType: "CASH",
+                                                totalAmount: grandTotal,
+                                                payAmount: _customerPaid,
+                                                billingItem: _billingItemList));
+                                          }
+                                        : () {
+                                            AppDialogBox.show(
+                                              context,
+                                              title: 'Sorry!',
+                                              message:
+                                                  'Cash customer can\'t process any credit payments',
+                                              image: AppImages.failedDialog,
+                                              isTwoButton: false,
+                                              positiveButtonText: 'Okay',
+                                              positiveButtonTap: () {},
+                                            );
+                                          },
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<List<int>> _generateReceipt({
+    required List<Stock> itemList,
+    required String invoiceNo,
+    required DateTime invoiceDate,
+    required String cashier,
+    required String paymentType,
+    required String outlet,
+    required String total,
+    required String cash,
+    required String changes,
+  }) async {
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+    List<int> bytes = [];
+
+    bytes += generator.drawer();
+
+    log("----- $itemList");
+    int totalItems = 0;
+    // Header
+    bytes += generator.text(
+      'DPD Chemical',
+      styles: PosStyles(
+        align: PosAlign.center,
+        bold: true,
+        height: PosTextSize.size2,
+        width: PosTextSize.size2,
+      ),
+    );
+    bytes += generator.text('');
+
+    bytes += generator.text(
+      outlet,
+      styles: PosStyles(align: PosAlign.center, bold: true),
+    );
+    bytes += generator.text(
+      "076 891 85 70 / 078 60 65 410",
+      styles: PosStyles(align: PosAlign.center, bold: true),
+    );
+
+    bytes += generator.text('');
+    bytes += generator.text(
+      'SALES INVOICE',
+      styles: PosStyles(align: PosAlign.center, bold: true),
+    );
+    bytes += generator.hr();
+    // Invoice metadata
+    bytes += generator.text(
+        'Date       : ${DateFormat('yyyy/MM/dd hh:mm:ss a').format(invoiceDate)}');
+    bytes += generator.text('Invoice No : $invoiceNo');
+    bytes += generator.text('Outlet     : $outlet');
+    bytes += generator.text('Payment    : $paymentType');
+    bytes += generator.hr();
+    // Table header
+    bytes += generator.text(
+      'No  Item Name            Price     Qty    Total',
+      styles: PosStyles(bold: true),
+    );
+    bytes += generator.hr();
+    for (var i = 0; i < itemList.length; i++) {
+      final item = itemList[i];
+      totalItems += item.cartQty as int;
+      final name = item.item?.description ?? '';
+      final priceStr = (item.retailPrice ?? 0).toString().padRight(10);
+      final qtyStr = (item.cartQty.toString()).padRight(5);
+      final totalStr = ((item.cartQty ?? 0) * (item.retailPrice ?? 0)).toString();
+
+      if (name.length > 18) {
+        final firstLine = '${(i + 1).toString().padRight(4)}'
+            '${name.substring(0, 18).padRight(22)}'
+            '$priceStr'
+            '$qtyStr'
+            '$totalStr';
+        final secondLine = '    ' // 4 spaces for No
+            '${name.substring(18).padRight(22)}';
+        bytes += generator.text(firstLine);
+        bytes += generator.text(secondLine);
+      } else {
+        final line = '${(i + 1).toString().padRight(4)}'
+            '${name.padRight(22)}'
+            '$priceStr'
+            '$qtyStr'
+            '$totalStr';
+        bytes += generator.text(line);
+      }
+    }
+    // Total
+    bytes += generator.hr();
+    bytes += generator.text(
+      'TOTAL ITEMS    :   $totalItems',
+      styles: PosStyles(bold: true),
+    );
+    bytes += generator.hr();
+    bytes += generator.text('Total Amount : $total', styles: PosStyles(align: PosAlign.right));
+    bytes += generator.text('Cash : $cash', styles: PosStyles(align: PosAlign.right));
+    bytes += generator.text('Changes : $changes', styles: PosStyles(align: PosAlign.right));
+    bytes += generator.hr();
+    // Notes
+    bytes += generator.text('');
+    bytes += generator.text(
+      'NOTES:',
+      styles: PosStyles(bold: true),
+    );
+    bytes += generator.text('Please verify items upon receipt.');
+    bytes += generator.text('Report any missing/damaged items within 24hrs.');
+    bytes += generator.text('');
+    bytes += generator.hr();
+
+    // Footer
+    bytes += generator.text(
+      'Thank You !',
+      styles: PosStyles(align: PosAlign.center, bold: true),
+    );
+    bytes += generator.hr();
+    bytes += generator.text('');
+    // Powered by
+    bytes += generator.text(
+      'Powered By AventaPOS',
+      styles: PosStyles(align: PosAlign.center),
+    );
+    bytes += generator.feed(1);
+    bytes += generator.cut();
+    return bytes;
+  }
+
+  Widget receiptWidget(String printerType) {
+    return SizedBox(
+      width: 550,
+      child: Material(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'FLUTTER THERMAL PRINTER',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Divider(thickness: 2),
+              const SizedBox(height: 10),
+              _buildReceiptRow('Item', 'Price'),
+              const Divider(),
+              _buildReceiptRow('Apple', '\$1.00'),
+              _buildReceiptRow('Banana', '\$0.50'),
+              _buildReceiptRow('Orange', '\$0.75'),
+              const Divider(thickness: 2),
+              _buildReceiptRow('Total', '\$2.25', isBold: true),
+              const SizedBox(height: 20),
+              _buildReceiptRow('Printer Type', printerType),
+              const SizedBox(height: 50),
+              const Center(
+                child: Text(
+                  'Thank you for your purchase!',
+                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReceiptRow(String leftText, String rightText,
+      {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            leftText,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+          ),
+          Text(
+            rightText,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  List<BaseBloc<BaseEvent, BaseState>> getBlocs() {
+    return [_bloc];
   }
 }
 
 class PaymentParams {
   final List<Stock> cartItemList;
   final double total;
+  final Function? onPop;
 
-  PaymentParams({required this.cartItemList, required this.total});
+  PaymentParams({required this.cartItemList, required this.total, this.onPop});
 }

@@ -7,7 +7,7 @@ class AppImages {
   static const String successDialog =
       'assets/animations/lottie/successNew.json';
   static const String loadingAnimation =
-      'assets/animations/lottie/loading3.json';
+      'assets/animations/lottie/Traingle.json';
   static const String emptyAnimation =
       'assets/animations/lottie/empty_animation.json';
   static const String newLoading = 'assets/animations/lottie/loading (9).json';
@@ -17,6 +17,7 @@ class AppImages {
       'assets/animations/lottie/bg_animation.json';
   static const String emptyList = 'assets/animations/lottie/empty_list.json';
   static const String familyImage = 'assets/animations/lottie/family.json';
+  static const String splashLoading = 'assets/animations/lottie/Loading Lines.json';
 
   /// SVGs
   static const String logo = 'assets/images/svg/A.svg';

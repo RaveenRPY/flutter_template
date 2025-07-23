@@ -17,7 +17,6 @@ class TokenInterceptor extends Interceptor {
       options.headers['Authorization'] = null;
     } else {
       final String? accessToken = await localDataSource!.getAccessToken();
-      log("options.headers['Authorization'] = 'Bearer $accessToken'");
       if (accessToken != null && accessToken.isNotEmpty) {
 
         options.headers['Authorization'] = 'Bearer $accessToken';

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:convert';
 import 'dart:io';
+import 'package:AventaPOS/features/presentation/views/home/widgets/cash_in_out.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
@@ -50,11 +51,12 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   final DataGridController _tableController = DataGridController();
 
   bool _isRetail = true;
+  bool _isCheckOutPage = false;
 
   bool _filtersEnabled = false;
 
   bool _isSelectionMode = false;
-  Set<int> _selectedItems = {};
+  final Set<int> _selectedItems = {};
 
   List<Stock> _cartItems = [];
 
@@ -63,8 +65,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
 
-  String _ip = '192.168.0.100';
-  String _port = '9100';
+  final String _ip = '192.168.123.123';
+  final String _port = '9100';
 
   List<Printer> printers = [];
 
@@ -74,7 +76,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   void startScan() async {
     _devicesStreamSubscription?.cancel();
     await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
-      ConnectionType.USB,
+      ConnectionType.NETWORK,
     ]);
     _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
         .listen((List<Printer> event) {
@@ -152,7 +154,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
         _cartItems[index] = Stock(
           id: _cartItems[index].id,
           item: _cartItems[index].item,
-          lablePrice: _cartItems[index].lablePrice,
+          labelPrice: _cartItems[index].labelPrice,
           itemCost: _cartItems[index].itemCost,
           retailPrice: _cartItems[index].retailPrice,
           wholesalePrice: _cartItems[index].wholesalePrice,
@@ -211,7 +213,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
           _cartItems[index] = Stock(
             id: _cartItems[index].id,
             item: _cartItems[index].item,
-            lablePrice: _cartItems[index].lablePrice,
+            labelPrice: _cartItems[index].labelPrice,
             itemCost: _cartItems[index].itemCost,
             retailPrice: _cartItems[index].retailPrice,
             wholesalePrice: _cartItems[index].wholesalePrice,
@@ -245,26 +247,11 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     });
   }
 
-  // void _addItemToCart() {
-  //   final newId = _cartItems.length;
-  //   final newItem = CartProduct(
-  //     id: newId,
-  //     name: 'Product ${newId + 1}',
-  //     code: 'P${(newId + 1).toString().padLeft(3, '0')}',
-  //     unitPrice: 1200.00 + (newId * 100),
-  //     quantity: 1,
-  //   );
-  //
-  //   setState(() {
-  //     _cartItems.add(newItem);
-  //   });
-  // }
-
   bool _isProductInCart(String productCode, double labelPrice) {
     return _cartItems.any((item) {
       log(item.item!.code.toString());
       return (item.item?.code == productCode) &&
-          (item.lablePrice == labelPrice);
+          (item.labelPrice == labelPrice);
     });
   }
 
@@ -313,11 +300,11 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     // Check if item already exists in cart (by code and label price)
     final index = _cartItems.indexWhere((item) =>
         item.item?.code == stock.item?.code &&
-        item.lablePrice == stock.lablePrice);
+        item.labelPrice == stock.labelPrice);
     final cartStock = Stock(
       id: stock.id,
       item: stock.item,
-      lablePrice: stock.lablePrice,
+      labelPrice: stock.labelPrice,
       itemCost: stock.itemCost,
       retailPrice: price,
       wholesalePrice: stock.wholesalePrice,
@@ -376,7 +363,21 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
             }
           }),
         ],
-        child: _buildSalesContent(context),
+        child: !_isCheckOutPage
+            ? _buildSalesContent(context)
+            : ProcessPaymentView(
+                params: PaymentParams(
+                    cartItemList: _cartItems,
+                    total: _calculateCartTotal(),
+                    onPop: (bool? isNew) {
+                      setState(() {
+                        _isCheckOutPage = false;
+                        if(isNew ?? false){
+                          _cartItems.clear();
+                          _searchController.clear();
+                        }
+                      });
+                    })),
       ),
     );
   }
@@ -482,7 +483,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         child: Row(
                           children: [
                             Icon(
-                              HugeIcons.strokeRoundedPrinter,
+                              HugeIcons.strokeRoundedRefresh,
                               size: 20,
                               color: AppColors.darkBlue,
                             ),
@@ -490,7 +491,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               width: 8,
                             ),
                             Text(
-                              'Last Sale',
+                              'Refresh',
                               style: AppStyling.regular12Black,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -542,7 +543,9 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     borderRadius: BorderRadius.circular(60),
                     splashColor: AppColors.darkBlue.withOpacity(0.1),
                     highlightColor: AppColors.darkBlue.withOpacity(0.1),
-                    onTap: () {},
+                    onTap: () {
+                      CashInOutWindow.show(context);
+                    },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 0),
@@ -676,14 +679,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         if (rowIndex < _filteredStocks.length) {
                           final stock = _filteredStocks[rowIndex];
                           if (_isProductInCart(
-                              stock.item?.code ?? '', stock.lablePrice ?? 0)) {
+                              stock.item?.code ?? '', stock.labelPrice ?? 0)) {
                             _showDuplicateItemToast();
                           } else {
                             PopupWindow.show(
                               context,
                               itemCode: stock.item?.code,
                               itemName: stock.item?.description,
-                              labelPrice: stock.lablePrice,
+                              labelPrice: stock.labelPrice,
                               salePrice: stock.retailPrice,
                               stockQty: stock.qty,
                               onAddToCart: (Stock s, int qty, double price) {
@@ -1073,7 +1076,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           print(
                               'Tapped product: Name: ${stock.item?.description}, Code: ${stock.item?.code}, Price: ${stock.itemCost}');
                           if (_isProductInCart(
-                              stock.item?.code ?? '', stock.lablePrice ?? 0)) {
+                              stock.item?.code ?? '', stock.labelPrice ?? 0)) {
                             _showDuplicateItemToast();
                           } else {
                             PopupWindow.show(
@@ -1081,7 +1084,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               stock: stock,
                               itemCode: stock.item?.code,
                               itemName: stock.item?.description,
-                              labelPrice: stock.lablePrice,
+                              labelPrice: stock.labelPrice,
                               salePrice: stock.retailPrice,
                               stockQty: stock.qty,
                               cost: stock.itemCost,
@@ -1290,36 +1293,39 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                     ),
                 ] else ...[
-                  IconButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                          AppColors.red.withOpacity(0.2)),
+                  if (_cartItems.isNotEmpty)
+                    IconButton(
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(
+                            AppColors.red.withOpacity(0.2)),
+                      ),
+                      onPressed: () {
+                        // _isSelectionMode = true;
+                        if (_cartItems.isNotEmpty) {
+                          AppDialogBox.show(
+                            context,
+                            title: 'Clear Cart',
+                            message: 'Are you sure you want to clear the cart?',
+                            image: AppImages.failedDialog,
+                            negativeButtonText: 'No',
+                            negativeButtonTap: () {
+                              // Do nothing, just close the dialog
+                            },
+                            positiveButtonText: 'Clear',
+                            positiveButtonTap: () {
+                              setState(() {
+                                _cartItems.clear();
+                              });
+                            },
+                          );
+                        }
+                      },
+                      icon: Icon(
+                        HugeIcons.strokeRoundedDelete03,
+                        color: AppColors.red,
+                        size: 20,
+                      ),
                     ),
-                    onPressed: () {
-                      // _isSelectionMode = true;
-                      AppDialogBox.show(
-                        context,
-                        title: 'Clear Cart',
-                        message: 'Are you sure you want to clear the cart?',
-                        image: AppImages.failedDialog,
-                        negativeButtonText: 'Cancel',
-                        negativeButtonTap: () {
-                          // Do nothing, just close the dialog
-                        },
-                        positiveButtonText: 'Remove',
-                        positiveButtonTap: () {
-                          setState(() {
-                            _filteredStocks.clear();
-                          });
-                        },
-                      );
-                    },
-                    icon: Icon(
-                      HugeIcons.strokeRoundedDelete03,
-                      color: AppColors.red,
-                      size: 20,
-                    ),
-                  ),
                 ],
               ],
             ),
@@ -1386,7 +1392,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                                     stock: item,
                                     itemCode: item.item?.code,
                                     itemName: item.item?.description,
-                                    labelPrice: item.lablePrice,
+                                    labelPrice: item.labelPrice,
                                     salePrice: item.retailPrice,
                                     qty: item.cartQty,
                                     stockQty: item.qty,
@@ -1485,7 +1491,26 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         title: 'Cancel Sale',
                         titleStyle: AppStyling.medium14Black
                             .copyWith(color: AppColors.red),
-                        onTap: () {},
+                        onTap: () {
+                          AppDialogBox.show(
+                            context,
+                            title: 'Cancel Sale',
+                            message: 'Are you sure you want to cancel the sale ?',
+                            image: AppImages.failedDialog,
+                            negativeButtonText: 'No',
+                            negativeButtonTap: () {
+                              // Do nothing, just close the dialog
+                            },
+                            positiveButtonText: 'Yes',
+                            positiveButtonTap: () {
+                              setState(() {
+                                _cartItems.clear();
+                                _searchController.clear();
+                              });
+                            },
+                          );
+
+                        },
                       ),
                     ),
                   ],
@@ -1498,96 +1523,87 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   ),
                   title: 'Checkout',
                   onTap: () async {
-                    startScan();
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final service = FlutterThermalPrinterNetwork(
-                      _ip,
-                      port: int.parse(_port),
-                    );
-                    await service.connect();
-                    final profile = await CapabilityProfile.load();
-                    final generator = Generator(PaperSize.mm80, profile);
-                    List<int> bytes = [];
-                    if (context.mounted) {
-                      bytes = await FlutterThermalPrinter.instance.screenShotWidget(
-                        context,
-                        generator: generator,
-                        widget: receiptWidget("Network"),
-                      );
-                      bytes += generator.cut();
-                      await service.printTicket(bytes);
+                    // final service = FlutterThermalPrinterNetwork(_ip,
+                    //     port: int.parse(_port));
+                    // await service.connect();
+                    // final bytes = await _generateReceipt();
+                    // await service.printTicket(bytes);
+                    // await service.disconnect();
+                    if (_cartItems.isNotEmpty) {
+                      setState(() {
+                        _isCheckOutPage = true;
+                      });
+                    } else {
+                      ZynoloToast(
+                        title: 'Your shopping cart is empty !',
+                        toastType: Toast.warning,
+                        animationDuration: Duration(milliseconds: 500),
+                        toastPosition: Position.top,
+                        animationType: AnimationType.fromTop,
+                        backgroundColor: AppColors.whiteColor.withOpacity(1),
+                      ).show(context);
                     }
-                    await service.disconnect();
                   },
-                  child: const Text('Test USB printer'),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
-                    await service.connect();
-                    final bytes = await _generateReceipt();
-                    await service.printTicket(bytes);
-                    await service.disconnect();
-                  },
-                  child:  Text('Test network printer widget', style: AppStyling.medium12Black,),
-                ),
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 22),
-                Text(
-                  'USB/BLE',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 22),
-                ElevatedButton(
-                  onPressed: () {
-                    // startScan();
-                    startScan();
-                  },
-                  child:  Text('Get Printers', style: AppStyling.medium12Black),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // startScan();
-                    stopScan();
-                  },
-                  child:  Text('Stop Scan', style: AppStyling.medium12Black),
-                ),
+                // ElevatedButton(
+                //   onPressed: () async {
+                //     final service = FlutterThermalPrinterNetwork(
+                //       _ip,
+                //       port: int.parse(_port),
+                //     );
+                //     await service.connect();
+                //     final profile = await CapabilityProfile.load();
+                //     final generator = Generator(PaperSize.mm80, profile);
+                //     List<int> bytes = [];
+                //     if (context.mounted) {
+                //       bytes =
+                //           await FlutterThermalPrinter.instance.screenShotWidget(
+                //         context,
+                //         generator: generator,
+                //         widget: receiptWidget("Network"),
+                //       );
+                //       bytes += generator.cut();
+                //       await service.printTicket(bytes);
+                //     }
+                //     await service.disconnect();
+                //   },
+                //   child: const Text('Test USB printer'),
+                // ),
 
-                const SizedBox(height: 12),
-                ListView.builder(
-                  itemCount: printers.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      onTap: () async {
-                        if (printers[index].isConnected ?? false) {
-                          await _flutterThermalPrinterPlugin.disconnect(printers[index]);
-                        } else {
-                          await _flutterThermalPrinterPlugin.connect(printers[index]);
-                        }
-                      },
-                      title: Text(printers[index].name ?? 'No Name'),
-                      subtitle: Text("Connected: ${printers[index].isConnected}"),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.connect_without_contact),
-                        onPressed: () async {
-                          await _flutterThermalPrinterPlugin.printWidget(
-                            context,
-                            printer: printers[index],
-                            printOnBle: true,
-                            widget: receiptWidget(
-                              printers[index].connectionTypeString,
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                // const SizedBox(height: 12),
+                // ListView.builder(
+                //   itemCount: printers.length,
+                //   shrinkWrap: true,
+                //   itemBuilder: (context, index) {
+                //     return ListTile(
+                //       onTap: () async {
+                //         if (printers[index].isConnected ?? false) {
+                //           await _flutterThermalPrinterPlugin
+                //               .disconnect(printers[index]);
+                //         } else {
+                //           await _flutterThermalPrinterPlugin
+                //               .connect(printers[index]);
+                //         }
+                //       },
+                //       title: Text(printers[index].name ?? 'No Name'),
+                //       subtitle:
+                //           Text("Connected: ${printers[index].isConnected}"),
+                //       trailing: IconButton(
+                //         icon: const Icon(Icons.connect_without_contact),
+                //         onPressed: () async {
+                //           await _flutterThermalPrinterPlugin.printWidget(
+                //             context,
+                //             printer: printers[index],
+                //             printOnBle: true,
+                //             widget: receiptWidget(
+                //               printers[index].connectionTypeString,
+                //             ),
+                //           );
+                //         },
+                //       ),
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),
@@ -1607,7 +1623,7 @@ class StockDataSource extends DataGridSource {
             columnName: 'name', value: stock.item?.description ?? ''),
         DataGridCell<String>(columnName: 'code', value: stock.item?.code ?? ''),
         DataGridCell<double>(
-            columnName: 'labelPrice', value: stock.lablePrice ?? 0),
+            columnName: 'labelPrice', value: stock.labelPrice ?? 0),
         DataGridCell<int>(columnName: 'qty', value: stock.qty ?? 0),
         DataGridCell<double>(
             columnName: 'retailPrice', value: stock.retailPrice ?? 0),
@@ -1683,15 +1699,115 @@ Future<List<int>> _generateReceipt() async {
   final profile = await CapabilityProfile.load();
   final generator = Generator(PaperSize.mm80, profile);
   List<int> bytes = [];
+
+  const invoiceNo = "TRI1234";
+  const date = "2025-07-19 10:32 AM";
+  const from = "Location A";
+  const to = "Location B";
+
+  final items = [
+    {"name": "Abiman Takkali 25g", "code": "abt125", "qty": 10, "unit": "Pack"},
+    {"name": "Abiman Takkali 25g", "code": "abt125", "qty": 5, "unit": "Pack"},
+    {"name": "Abiman Takkali 25g", "code": "abt125", "qty": 2, "unit": "Pack"},
+  ];
+
+  int total = 0;
+
+  // Open cash drawer
+  bytes += generator.drawer();
+
+  // Header
   bytes += generator.text(
-    "Teste Network print",
+    'DPD Chemical',
     styles: PosStyles(
+      align: PosAlign.center,
       bold: true,
-      height: PosTextSize.size3,
-      width: PosTextSize.size3,
+      height: PosTextSize.size2,
+      width: PosTextSize.size2,
     ),
   );
+
+  bytes += generator.text(
+    'ITEM TRANSFER INVOICE',
+    styles: PosStyles(align: PosAlign.center, bold: true),
+  );
+
+  bytes += generator.hr();
+
+  // Invoice metadata
+  bytes += generator.text('Date       : $date');
+  bytes += generator.text('Invoice No : $invoiceNo');
+  bytes += generator.text('From       : $from');
+  bytes += generator.text('To         : $to');
+
+  bytes += generator.hr();
+
+  // Table header
+  bytes += generator.text(
+    'No  Item Name              Code     Qty  Unit',
+    styles: PosStyles(bold: true),
+  );
+
+  bytes += generator.hr();
+
+  // Items
+  for (var i = 0; i < items.length; i++) {
+    final item = items[i];
+    total += item["qty"] as int;
+
+    final line = '${(i + 1).toString().padRight(4)}'
+        '${(item["name"] as String).padRight(22)}'
+        '${(item["code"] as String).padRight(8)}'
+        '${item["qty"].toString().padRight(8)}'
+        '${item["unit"]}';
+
+    bytes += generator.text(line);
+  }
+
+  // Total
+  bytes += generator.hr();
+  bytes += generator.text(
+    'TOTAL ITEMS    :   $total',
+    styles: PosStyles(bold: true),
+  );
+  bytes += generator.hr();
+
+  // Notes
+  bytes += generator.text('');
+  bytes += generator.text(
+    'NOTES:',
+    styles: PosStyles(bold: true),
+  );
+
+  bytes += generator.text('Please verify items upon receipt.');
+  bytes += generator.text('Report any missing/damaged items within 24hrs.');
+  bytes += generator.text('');
+  bytes += generator.text('Sent By     : _________________________________');
+  bytes += generator.text('Received By : _________________________________');
+  bytes += generator.text('Date        : _________________________________');
+  bytes += generator.text('');
+  bytes += generator.hr();
+
+  // Footer
+  bytes += generator.text(
+    'Thank You !',
+    styles: PosStyles(align: PosAlign.center, bold: true),
+  );
+
+  bytes += generator.hr();
+
+  // Barcode
+  // bytes +=  generator.barcode(Barcode.code39(invoiceNo));
+
+  // Powered by
+  bytes += generator.text(
+    'Powered By AventaPOS',
+    styles: PosStyles(align: PosAlign.center),
+  );
+
+  bytes += generator.feed(2);
   bytes += generator.cut();
+
   return bytes;
 }
 

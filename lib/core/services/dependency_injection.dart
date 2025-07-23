@@ -1,3 +1,5 @@
+import 'package:AventaPOS/features/domain/usecases/cash_in_out/view_cash_in_out.dart';
+import 'package:AventaPOS/features/domain/usecases/checkout/checkout.dart';
 import 'package:AventaPOS/features/domain/usecases/login/login.dart';
 import 'package:AventaPOS/features/domain/usecases/stock/get_stock.dart';
 import 'package:AventaPOS/features/presentation/bloc/login/login_bloc.dart';
@@ -14,6 +16,7 @@ import '../../features/data/datasources/local_datasource.dart';
 import '../../features/data/datasources/remote_datasource.dart';
 import '../../features/data/repositories/repository_impl.dart';
 import '../../features/domain/respositories/repository.dart';
+import '../../features/domain/usecases/cash_in_out/cash_in_out.dart';
 import '../../features/presentation/bloc/sale/sale_bloc.dart';
 import 'api_helper.dart';
 import '../network/network_info.dart';
@@ -65,6 +68,15 @@ Future<void> setupLocator() async {
   inject.registerLazySingleton(
     () => GetStockUseCase(repository: inject()),
   );
+  inject.registerLazySingleton(
+    () => CheckOutUseCase(repository: inject()),
+  );
+  inject.registerLazySingleton(
+    () => ViewTodayCashInOutUseCase(repository: inject()),
+  );
+  inject.registerLazySingleton(
+    () => CashInOutUseCase(repository: inject()),
+  );
 
   // BLoCs - Using Factory for stateful BLoCs
   inject.registerFactory(
@@ -76,6 +88,9 @@ Future<void> setupLocator() async {
   inject.registerFactory(
     () => StockBloc(
       getStockUseCase: inject<GetStockUseCase>(),
+      checkOutUseCase: inject<CheckOutUseCase>(),
+      viewTodayCashInOutUseCase: inject<ViewTodayCashInOutUseCase>(),
+      cashInOutUseCase: inject<CashInOutUseCase>(),
     ),
   );
 

@@ -1,9 +1,13 @@
 import 'dart:ui';
+import 'package:AventaPOS/core/services/dependency_injection.dart';
+import 'package:AventaPOS/features/data/datasources/local_datasource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_images.dart';
+import '../../../utils/navigation_routes.dart';
 import '../bloc/base_bloc.dart';
 import '../widgets/custom_dialog_box.dart';
 
@@ -13,6 +17,8 @@ abstract class BaseView extends StatefulWidget {
 
 abstract class BaseViewState<Page extends BaseView> extends State<Page> {
   Widget buildView(BuildContext context);
+
+  final LocalDatasource _localDatasource = inject<LocalDatasource>();
 
   List<BaseBloc> getBlocs();
 
@@ -60,13 +66,13 @@ abstract class BaseViewState<Page extends BaseView> extends State<Page> {
                         isTwoButton: false,
                         positiveButtonTap: () {
                           setState(() {
-                            // _localDatasource.clearAccessToken();
+                            _localDatasource.clearAccessToken();
                           });
-                          // Navigator.pushNamedAndRemoveUntil(
-                          //   context,
-                          //   Routes.kLoginView,
-                          //   (route) => false,
-                          // );
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            Routes.kLoginView,
+                            (route) => false,
+                          );
                         },
                       );
                     }
@@ -96,18 +102,30 @@ abstract class BaseViewState<Page extends BaseView> extends State<Page> {
               child: Opacity(
                 opacity: a1.value,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaY: 3, sigmaX: 3),
+                  filter: ImageFilter.blur(sigmaY: 10, sigmaX: 10),
                   child: Container(
                     alignment: FractionalOffset.center,
                     child: Wrap(
                       children: [
-                        SizedBox(
-                          height: 45,
-                          width: 45,
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryColor,
-                            strokeWidth: 5,
+                        Container(
+                          height: 100,
+                          width: 100,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.whiteColor),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Lottie.asset(
+                              AppImages.loadingAnimation,
+                              frameRate: const FrameRate(90),
+                            ),
                           ),
+                          // child: Padding(
+                          //   padding: const EdgeInsets.all(10.0),
+                          //   child: CircularProgressIndicator(
+                          //     color: AppColors.primaryColor,
+                          //     strokeWidth: 4,
+                          //     trackGap: 5,
+                          //   ),
+                          // ),
                         ),
                       ],
                     ),

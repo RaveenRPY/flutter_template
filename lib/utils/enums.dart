@@ -6,6 +6,8 @@ enum Toast {
   const Toast();
 }
 
+enum CashMode { inCash, outCash }
+
 enum DocType {
   BIRTH,
   MARRAIGE,

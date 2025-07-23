@@ -68,8 +68,9 @@ class _LoginViewState extends BaseViewState<LoginView> {
             child: Row(
               children: [
                 Expanded(
-                  child: SizedBox(
+                  child: Container(
                     height: double.infinity,
+                    decoration: BoxDecoration(color: AppColors.darkGrey.withOpacity(0.3),borderRadius: BorderRadius.circular(40)),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(40),
                       child: Image.asset(
@@ -124,8 +125,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
                         SizedBox(
                           height: 40,
                         ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w),
+                        SizedBox(
+                          width: 30.w,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

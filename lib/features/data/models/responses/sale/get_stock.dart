@@ -33,7 +33,7 @@ class GetStockResponse extends Serializable {
 class Stock {
   final int? id;
   final Item? item;
-  final double? lablePrice;
+  final double? labelPrice;
   final double? itemCost;
   final double? retailPrice;
   final double? wholesalePrice;
@@ -42,12 +42,12 @@ class Stock {
   final int? qty;
   final String? status;
   final String? statusDescription;
-  int? cartQty; // For frontend cart state only
+  int? cartQty;
 
   Stock({
     this.id,
     this.item,
-    this.lablePrice,
+    this.labelPrice,
     this.itemCost,
     this.retailPrice,
     this.wholesalePrice,
@@ -62,7 +62,7 @@ class Stock {
   factory Stock.fromJson(Map<String, dynamic> json) => Stock(
         id: json["id"],
         item: json["item"] == null ? null : Item.fromJson(json["item"]),
-        lablePrice: json["lablePrice"],
+        labelPrice: json["lablePrice"],
         itemCost: json["itemCost"],
         retailPrice: json["retailPrice"],
         wholesalePrice: json["wholesalePrice"],
@@ -77,7 +77,7 @@ class Stock {
   Map<String, dynamic> toJson() => {
         "id": id,
         "item": item?.toJson(),
-        "lablePrice": lablePrice,
+        "lablePrice": labelPrice,
         "itemCost": itemCost,
         "retailPrice": retailPrice,
         "wholesalePrice": wholesalePrice,
