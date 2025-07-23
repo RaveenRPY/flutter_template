@@ -11,19 +11,19 @@ class AppStyling {
   static TextStyle regular8Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 10.px,
+    fontSize: 10,
     color: AppColors.darkBlue,
   );
   static TextStyle medium8Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 10.px,
+    fontSize: 10,
     color: AppColors.darkGrey,
   );
   static TextStyle medium8Pink = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 10.px,
+    fontSize: 10,
     color: AppColors.primaryColor,
   );
 
@@ -31,7 +31,7 @@ class AppStyling {
   static TextStyle medium9Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 11.px,
+    fontSize: 11,
     color: AppColors.darkBlue,
   );
 
@@ -39,31 +39,31 @@ class AppStyling {
   static TextStyle regular10Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 12.px,
+    fontSize: 12,
     color: AppColors.darkGrey,
   );
   static TextStyle regular10Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 12.px,
+    fontSize: 12,
     color: AppColors.darkBlue,
   );
   static TextStyle medium10Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 12.px,
+    fontSize: 12,
     color: AppColors.darkBlue,
   );
   static TextStyle semi10Pink = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 12.px,
+    fontSize: 12,
     color: AppColors.primaryColor,
   );
   static TextStyle medium10Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 12.px,
+    fontSize: 12,
     color: AppColors.darkGrey,
   );
 
@@ -71,43 +71,43 @@ class AppStyling {
   static TextStyle regular12White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.whiteColor,
   );
   static TextStyle regular12Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.darkBlue,
   );
   static TextStyle regular12Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.darkGrey,
   );
   static TextStyle medium12Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.darkGrey,
   );
   static TextStyle medium12Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.darkBlue,
   );
   static TextStyle medium12White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.whiteColor,
   );
   static TextStyle semi12Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 14.px,
+    fontSize: 14,
     color: AppColors.darkBlue,
   );
 
@@ -115,37 +115,37 @@ class AppStyling {
   static TextStyle regular14Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.darkGrey,
   );
   static TextStyle regular14Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.darkBlue,
   );
   static TextStyle medium14Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.darkBlue,
   );
   static TextStyle medium14White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.whiteColor,
   );
   static TextStyle semi14Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.darkBlue,
   );
   static TextStyle semi14White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 16.px,
+    fontSize: 16,
     color: AppColors.whiteColor,
   );
 
@@ -153,19 +153,19 @@ class AppStyling {
   static TextStyle regular16Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 18.px,
+    fontSize: 18,
     color: AppColors.darkGrey,
   );
   static TextStyle medium16Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 18.px,
+    fontSize: 18,
     color: AppColors.darkBlue,
   );
   static TextStyle semi16Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 18.px,
+    fontSize: 18,
     color: AppColors.darkBlue,
   );
 
@@ -173,25 +173,25 @@ class AppStyling {
   static TextStyle regular18Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
-    fontSize: 20.px,
+    fontSize: 20,
     color: AppColors.darkBlue,
   );
   static TextStyle medium18Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 20.px,
+    fontSize: 20,
     color: AppColors.darkBlue,
   );
   static TextStyle bold18White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w700,
-    fontSize: 20.px,
+    fontSize: 20,
     color: AppColors.whiteColor,
   );
   static TextStyle bold18Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w700,
-    fontSize: 20.px,
+    fontSize: 20,
     color: AppColors.darkBlue,
   );
 
@@ -199,25 +199,25 @@ class AppStyling {
   static TextStyle medium20Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 22.px,
+    fontSize: 22,
     color: AppColors.darkBlue,
   );
   static TextStyle medium20White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 22.px,
+    fontSize: 22,
     color: AppColors.whiteColor,
   );
   static TextStyle semi20White = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 22.px,
+    fontSize: 22,
     color: AppColors.whiteColor,
   );
   static TextStyle semi20Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 22.px,
+    fontSize: 22,
     color: AppColors.darkBlue,
   );
 
@@ -225,13 +225,13 @@ class AppStyling {
   static TextStyle medium22Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 24.px,
+    fontSize: 24,
     color: AppColors.darkBlue,
   );
   static TextStyle semi22Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 24.px,
+    fontSize: 24,
     color: AppColors.darkBlue,
   );
 
@@ -239,19 +239,19 @@ class AppStyling {
   static TextStyle medium25Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 24.px,
+    fontSize: 24,
     color: AppColors.darkBlue,
   );
   static TextStyle semi25Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 24.px,
+    fontSize: 24,
     color: AppColors.darkBlue,
   );
   static TextStyle semi25Grey = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 24.px,
+    fontSize: 24,
     color: AppColors.darkGrey,
   );
 
@@ -259,13 +259,13 @@ class AppStyling {
   static TextStyle medium35Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w500,
-    fontSize: 37.px,
+    fontSize: 37,
     color: AppColors.darkBlue,
   );
   static TextStyle semi35Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 37.px,
+    fontSize: 37,
     color: AppColors.darkBlue,
   );
 
@@ -273,7 +273,7 @@ class AppStyling {
   static TextStyle semi65Black = TextStyle(
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
-    fontSize: 67.px,
+    fontSize: 67,
     color: AppColors.darkBlue,
   );
 }
