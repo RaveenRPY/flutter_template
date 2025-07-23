@@ -40,7 +40,7 @@ class CashInOutWindow extends BaseView {
       barrierLabel: "",
       barrierDismissible: true,
       transitionBuilder: (context, a1, a2, widget) {
-        return Transform.scale(
+        return Transform.scale( 
           scale: a1.value,
           child: Opacity(
             opacity: a1.value,

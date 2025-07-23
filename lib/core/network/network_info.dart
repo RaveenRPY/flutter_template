@@ -18,6 +18,8 @@ class NetworkInfoImpl implements NetworkInfo {
       return true;
     } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
       return true;
+    } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
+      return true;
     } else if (connectivityResult.contains(ConnectivityResult.none)) {
       await Future.delayed(const Duration(milliseconds: 5));
       final List<ConnectivityResult> connectivityResult1 = await connectionChecker.checkConnectivity();
