@@ -33,7 +33,7 @@ class NetworkInfoImpl implements NetworkInfo {
       await Future.delayed(const Duration(milliseconds: 5));
       final List<ConnectivityResult> connectivityResult2 = await connectionChecker.checkConnectivity();
       if (connectivityResult2.contains(ConnectivityResult.wifi) ||
-          connectivityResult2.contains(ConnectivityResult.mobile)) {
+          connectivityResult2.contains(ConnectivityResult.mobile) || connectivityResult2.contains(ConnectivityResult.ethernet)) {
         return true;
       } else {
         return false;
