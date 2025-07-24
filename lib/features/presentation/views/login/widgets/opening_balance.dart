@@ -92,20 +92,20 @@ class _PopupWindowState extends State<OpeningBalance> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
-                        padding:  EdgeInsets.only(top: 1.h),
+                        padding: EdgeInsets.only(top: 1.h),
                         child: Text(
                           "Cashier Opening Balance",
                           textAlign: TextAlign.center,
-                          style:
-                              AppStyling.medium25Black.copyWith(fontSize: 15.sp),
+                          style: AppStyling.medium25Black
+                              .copyWith(fontSize: 15.sp),
                         ),
                       ),
                       Padding(
-                        padding:  EdgeInsets.only(top: 10.sp),
+                        padding: EdgeInsets.only(top: 10.sp),
                         child: Text(
                           "Add opening balance to : ${AppConstants.profileData?.username} @ ${AppConstants.profileData?.location?.description}",
-                          style:
-                              AppStyling.regular14Black,
+                          style: AppStyling.regular14Black,
+                          textAlign: TextAlign.center,
                         ),
                       ),
 
@@ -117,6 +117,7 @@ class _PopupWindowState extends State<OpeningBalance> {
                             child: Form(
                               key: _opFormKey,
                               child: AventaFormField(
+                                focusNode: _opFocusNode,
                                 controller: _openingBalController,
                                 label: "Opening Balance",
                                 isCurrency: true,
@@ -142,6 +143,10 @@ class _PopupWindowState extends State<OpeningBalance> {
                                   }
                                   return null;
                                 },
+                                onCompleted: (){
+                                  Navigator.pushReplacementNamed(
+                                      context, Routes.kSaleView);
+                                },
                               ),
                               onChanged: () {
                                 setState(() {
@@ -155,13 +160,13 @@ class _PopupWindowState extends State<OpeningBalance> {
 
                       SizedBox(height: 30),
 
-
                       // Action Buttons
                       AppMainButton(
                         title: "Continue",
                         onTap: () {
                           // Navigator.pop(context);
-                          Navigator.pushReplacementNamed(context, Routes.kSaleView);
+                          Navigator.pushReplacementNamed(
+                              context, Routes.kSaleView);
                         },
                       ),
                     ],

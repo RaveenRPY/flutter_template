@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:AventaPOS/features/presentation/widgets/typewriter_text.dart';
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_images.dart';
@@ -387,7 +388,7 @@ class _ZynoloToastState extends State<ZynoloToast>
               TypewriterText(
                 text: widget.title ?? '',
                 duration: const Duration(milliseconds: 1),
-                textStyle: AppStyling.medium12Black,
+                textStyle: AppStyling.medium12Black.copyWith(fontSize: 11.sp,height: 1),
               ),
             if (widget.action != null)
               Column(

@@ -1542,6 +1542,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     child: Icon(HugeIcons.strokeRoundedCheckmarkBadge03),
                   ),
                   title: 'Checkout',
+                  titleStyle: AppStyling.medium12Black
+                      .copyWith(color: AppColors.whiteColor, fontSize: 11.sp),
                   onTap: () async {
                     // final service = FlutterThermalPrinterNetwork(_ip,
                     //     port: int.parse(_port));

@@ -215,7 +215,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               Row(
                 children: [
                   SizedBox(
-                    width: 45,
+                    width: 20.sp,
                     child: Material(
                       color: AppColors.whiteColor,
                       borderRadius: BorderRadius.circular(60),
@@ -233,7 +233,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                           child: Center(
                             child: Icon(
                               Icons.arrow_back_ios_new_rounded,
-                              size: 20,
+                              size: 13.sp,
                               color: AppColors.darkBlue,
                             ),
                           ),
@@ -242,16 +242,16 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                     ),
                   ),
                   SizedBox(
-                    width: 15,
+                    width: 10.sp,
                   ),
                   Text(
                     "Proceed Payment",
-                    style: AppStyling.medium20Black,
+                    style: AppStyling.medium16Black,
                   ),
                 ],
               ),
               SizedBox(
-                height: 15,
+                height: 10.sp,
               ),
               Expanded(
                 child: Row(
@@ -268,7 +268,9 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                           changes: change.toString(),
                           invoiceDate: DateTime.now(),
                           invoiceNo: "XXXXXXXXXX",
-                          outlet: AppConstants.profileData!.location!.description.toString(),
+                          outlet: AppConstants
+                              .profileData!.location!.description
+                              .toString(),
                           paymentType: "Cash",
                           total: grandTotal.toString(),
                           itemList: itemList,
@@ -523,7 +525,8 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
       final name = item.item?.description ?? '';
       final priceStr = (item.retailPrice ?? 0).toString().padRight(10);
       final qtyStr = (item.cartQty.toString()).padRight(5);
-      final totalStr = ((item.cartQty ?? 0) * (item.retailPrice ?? 0)).toString();
+      final totalStr =
+          ((item.cartQty ?? 0) * (item.retailPrice ?? 0)).toString();
 
       if (name.length > 18) {
         final firstLine = '${(i + 1).toString().padRight(4)}'
@@ -551,9 +554,12 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
       styles: PosStyles(bold: true),
     );
     bytes += generator.hr();
-    bytes += generator.text('Total Amount : $total', styles: PosStyles(align: PosAlign.right));
-    bytes += generator.text('Cash : $cash', styles: PosStyles(align: PosAlign.right));
-    bytes += generator.text('Changes : $changes', styles: PosStyles(align: PosAlign.right));
+    bytes += generator.text('Total Amount : $total',
+        styles: PosStyles(align: PosAlign.right));
+    bytes += generator.text('Cash : $cash',
+        styles: PosStyles(align: PosAlign.right));
+    bytes += generator.text('Changes : $changes',
+        styles: PosStyles(align: PosAlign.right));
     bytes += generator.hr();
     // Notes
     bytes += generator.text('');

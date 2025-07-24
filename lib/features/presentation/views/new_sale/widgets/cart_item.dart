@@ -7,7 +7,7 @@ import '../../../../../utils/app_colors.dart';
 import '../../../../../utils/app_spacing.dart';
 import '../../../../../utils/app_stylings.dart';
 
-class CartItem extends StatefulWidget {
+class CartItem extends StatelessWidget {
   final String productName;
   final String productCode;
   final double unitPrice;
@@ -43,44 +43,280 @@ class CartItem extends StatefulWidget {
     this.isForEdit = false,
   });
 
-  @override
-  State<CartItem> createState() => _CartItemState();
-}
+  // Replace _isSquareScreen with _isCompactScreen
+  bool _isCompactScreen(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final aspect = size.width / size.height;
+    // Check for 1:1 aspect ratio
+    if (aspect > 0.95 && aspect < 1.05) return true;
+    // Check for 1024x768 or 768x1024 (allow some tolerance for device pixel ratio)
+    if ((size.width.round() == 1024 && size.height.round() == 768) ||
+        (size.width.round() == 768 && size.height.round() == 1024)) {
+      return true;
+    }
+    return false;
+  }
 
-class _CartItemState extends State<CartItem> {
   @override
   Widget build(BuildContext context) {
+    if (_isCompactScreen(context)) {
+      return _buildCompactCartItem(context);
+    } else {
+      return _buildNormalCartItem(context);
+    }
+  }
+
+  Widget _buildCompactCartItem(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(
-        bottom: widget.isLastItem ? 0 : 8,
-      ),
+      margin: EdgeInsets.only(bottom: isLastItem ? 0 : 6),
+      padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: widget.isSelected
+        color: isSelected ? AppColors.primaryColor.withOpacity(0.08) : AppColors.whiteColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : AppColors.darkBlue.withOpacity(0.15),
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Selection Checkbox and Image
+          Column(
+            children: [
+              if (isSelectionMode)
+                Container(
+                  width: 18,
+                  height: 18,
+                  margin: EdgeInsets.only(bottom: 4),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? AppColors.primaryColor : AppColors.darkGrey.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? Icon(Icons.check, size: 14, color: AppColors.whiteColor)
+                      : null,
+                ),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: AppColors.primaryColor.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: productImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(
+                          productImage!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Icon(
+                        HugeIcons.strokeRoundedPackage,
+                        size: 18,
+                        color: AppColors.primaryColor.withOpacity(0.8),
+                      ),
+              ),
+            ],
+          ),
+          SizedBox(width: 8),
+          // Main Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Name
+                Text(
+                  productName,
+                  style: AppStyling.semi12Black.copyWith(fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 2),
+                // Product Code and Unit Price
+                Row(
+                  children: [
+                    Container(
+                      padding:  EdgeInsets.symmetric(
+                        horizontal: 8.sp,
+                        vertical: 6.sp,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgColor.withOpacity(1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        productCode,
+                        style: AppStyling.regular10Grey.copyWith(fontSize: 10.5.sp, color: AppColors.darkBlue.withOpacity(0.7),height: 1),
+                        overflow: TextOverflow.ellipsis,
+
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(unitPrice),
+                      style: AppStyling.regular10Grey.copyWith(fontSize: 10, color: AppColors.darkGrey.withOpacity(0.6)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                1.verticalSpace,
+                // Quantity Controls and Total Price
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+
+                    // Quantity Controls
+                    if (!isSelectionMode)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.bgColor.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.darkGrey.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Decrease Button
+                            Material(
+                              color: AppColors.transparent,
+                              child: InkWell(
+                                onTap: onDecrement,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(8),
+                                  bottomLeft: Radius.circular(8),
+                                ),
+                                splashColor:
+                                AppColors.primaryColor.withOpacity(0.2),
+                                highlightColor:
+                                AppColors.primaryColor.withOpacity(0.1),
+                                child: Container(
+                                  padding: EdgeInsets.all(6.sp),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 13,
+                                    color: AppColors.darkBlue.withOpacity(0.8),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Quantity Display
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.whiteColor,
+                                border: Border.symmetric(
+                                  horizontal: BorderSide(
+                                    color: AppColors.darkGrey.withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                quantity.toString(),
+                                style: AppStyling.semi12Black.copyWith(
+                                  color: AppColors.darkBlue,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                            // Increase Button
+                            Material(
+                              color: AppColors.transparent,
+                              child: InkWell(
+                                onTap: onIncrement,
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                splashColor:
+                                AppColors.primaryColor.withOpacity(0.2),
+                                highlightColor:
+                                AppColors.primaryColor.withOpacity(0.1),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 13,
+                                    color: AppColors.darkBlue.withOpacity(0.8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Spacer(),
+                    // Total Price
+                    Text(
+                      NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(totalPrice),
+                      style: AppStyling.semi12Black.copyWith(fontSize: 12, color: AppColors.darkBlue),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Remove Button (optional, can be an icon at the end)
+          if (onRemove != null)
+            IconButton(
+              icon: Icon(Icons.close, size: 18, color: AppColors.darkGrey.withOpacity(0.5)),
+              onPressed: onRemove,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNormalCartItem(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: isLastItem ? 0 : 8),
+      decoration: BoxDecoration(
+        color: isSelected
             ? AppColors.primaryColor.withOpacity(0.1)
             : AppColors.whiteColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: widget.isSelected
+            color: isSelected
                 ? AppColors.primaryColor.withOpacity(0.0)
                 : AppColors.darkGrey.withOpacity(0.0),
-            blurRadius: widget.isSelected ? 12 : 8,
+            blurRadius: isSelected ? 12 : 8,
             offset: const Offset(0, 2),
             spreadRadius: 0,
           ),
         ],
         border: Border.all(
-          color: widget.isSelected
+          color: isSelected
               ? AppColors.primaryColor.withOpacity(0.3)
               : AppColors.darkBlue.withOpacity(0.2),
-          width: widget.isSelected ? 2 : 1,
+          width: isSelected ? 2 : 1,
         ),
       ),
       child: Material(
         color: AppColors.transparent,
         child: InkWell(
-          onTap: widget.onTap,
-          onLongPress: widget.onLongPress,
+          onTap: onTap,
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(12),
           splashColor: AppColors.primaryColor.withOpacity(0.1),
           highlightColor: AppColors.primaryColor.withOpacity(0.05),
@@ -89,24 +325,23 @@ class _CartItemState extends State<CartItem> {
             child: Row(
               children: [
                 // Selection Checkbox (only visible in selection mode)
-                if (widget.isSelectionMode) ...[
+                if (isSelectionMode) ...[
                   Container(
                     width: 13.sp,
                     height: 13.sp,
                     decoration: BoxDecoration(
-                      color: widget.isSelected
+                      color: isSelected
                           ? AppColors.primaryColor
                           : AppColors.transparent,
-                      // borderRadius: BorderRadius.circular(4),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: widget.isSelected
+                        color: isSelected
                             ? AppColors.primaryColor
                             : AppColors.darkGrey.withOpacity(0.3),
                         width: 2,
                       ),
                     ),
-                    child: widget.isSelected
+                    child: isSelected
                         ? Icon(
                             Icons.check,
                             size: 10.sp,
@@ -129,11 +364,11 @@ class _CartItemState extends State<CartItem> {
                       width: 1,
                     ),
                   ),
-                  child: widget.productImage != null
+                  child: productImage != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.asset(
-                            widget.productImage!,
+                            productImage!,
                             fit: BoxFit.cover,
                           ),
                         )
@@ -152,7 +387,7 @@ class _CartItemState extends State<CartItem> {
                     children: [
                       // Product Name
                       Text(
-                        widget.productName,
+                        productName,
                         style: AppStyling.semi12Black.copyWith(
                           height: 1.2,
                         ),
@@ -174,7 +409,7 @@ class _CartItemState extends State<CartItem> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              widget.productCode,
+                              productCode,
                               style: AppStyling.regular10Grey.copyWith(
                                 color: AppColors.darkGrey.withOpacity(0.7),
                                 fontSize: 9.sp,
@@ -187,7 +422,7 @@ class _CartItemState extends State<CartItem> {
                               locale: 'en_US',
                               symbol: 'Rs. ',
                               decimalDigits: 2,
-                            ).format(widget.unitPrice),
+                            ).format(unitPrice),
                             style: AppStyling.regular12Grey.copyWith(
                               color: AppColors.darkGrey.withOpacity(0.6),
                               fontSize: 12,
@@ -208,7 +443,7 @@ class _CartItemState extends State<CartItem> {
                         locale: 'en_US',
                         symbol: 'Rs. ',
                         decimalDigits: 2,
-                      ).format(widget.totalPrice),
+                      ).format(totalPrice),
                       style: AppStyling.semi12Black.copyWith(
                         color: AppColors.darkBlue,
                         height: 1.1,
@@ -218,7 +453,7 @@ class _CartItemState extends State<CartItem> {
                 ),
 
                 // Quantity Controls (disabled in selection mode)
-                if (!widget.isSelectionMode) ...[
+                if (!isSelectionMode) ...[
                   1.horizontalSpace,
                   Container(
                     decoration: BoxDecoration(
@@ -236,7 +471,7 @@ class _CartItemState extends State<CartItem> {
                         Material(
                           color: AppColors.transparent,
                           child: InkWell(
-                            onTap: widget.onDecrement,
+                            onTap: onDecrement,
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(8),
                               bottomLeft: Radius.circular(8),
@@ -271,7 +506,7 @@ class _CartItemState extends State<CartItem> {
                             ),
                           ),
                           child: Text(
-                            widget.quantity.toString(),
+                            quantity.toString(),
                             style: AppStyling.semi12Black.copyWith(
                               color: AppColors.darkBlue,
                               fontSize: 11,
@@ -282,7 +517,7 @@ class _CartItemState extends State<CartItem> {
                         Material(
                           color: AppColors.transparent,
                           child: InkWell(
-                            onTap: widget.onIncrement,
+                            onTap: onIncrement,
                             borderRadius: const BorderRadius.only(
                               topRight: Radius.circular(8),
                               bottomRight: Radius.circular(8),

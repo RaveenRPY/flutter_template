@@ -247,6 +247,22 @@ class _PopupWindowState extends State<PopupWindow> {
                                       }
                                     });
                                   },
+                                  onCompleted: (){
+                                    setState(() {
+                                      _qtyFormKey.currentState?.validate();
+                                      _newSalePriceFormKey.currentState?.validate();
+
+                                      if((isQtyValidated &&
+                                          isCustomSalePriceValidated &&
+                                          _qty > 0)){
+                                        if (widget.onAddToCart != null) {
+                                          widget.onAddToCart!(
+                                              widget.stock!, _qty, _salePrice);
+                                        }
+                                        Navigator.pop(context);
+                                      }
+                                    });
+                                  },
                                   validator: (price) {
                                     if (price != null) {
                                       if (double.parse(
@@ -325,6 +341,22 @@ class _PopupWindowState extends State<PopupWindow> {
                                       _qty = int.tryParse(value) ?? 1;
                                     });
                                     _qtyFormKey.currentState?.validate();
+                                  },
+                                  onCompleted: (){
+                                    setState(() {
+                                      _qtyFormKey.currentState?.validate();
+                                      _newSalePriceFormKey.currentState?.validate();
+
+                                      if((isQtyValidated &&
+                                          isCustomSalePriceValidated &&
+                                          _qty > 0)){
+                                        if (widget.onAddToCart != null) {
+                                          widget.onAddToCart!(
+                                              widget.stock!, _qty, _salePrice);
+                                        }
+                                        Navigator.pop(context);
+                                      }
+                                    });
                                   },
                                 ),
                                 onChanged: () {

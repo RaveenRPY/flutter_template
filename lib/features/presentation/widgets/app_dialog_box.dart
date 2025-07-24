@@ -38,12 +38,12 @@ class AppDialogBox extends StatelessWidget {
       filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
       child: Container(
         alignment: FractionalOffset.center,
-        padding: const EdgeInsets.all(25),
+        padding: EdgeInsets.all(20.sp),
         child: Material(
           color: AppColors.whiteColor,
           borderRadius: BorderRadius.circular(30),
           child: Container(
-            width: 28.w,
+            width: 48.h,
             constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
             child: Wrap(
               children: [
@@ -53,26 +53,26 @@ class AppDialogBox extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      1.verticalSpace,
+                      2.verticalSpace,
                       Center(
                         child: Lottie.asset(
                           image ?? AppImages.successDialog,
                           frameRate: const FrameRate(120),
-                          height: 200,
+                          height: 35.sp,
                         ),
                       ),
                       2.verticalSpace,
                       Text(
                         title ?? '',
-                        style: AppStyling.medium22Black,
+                        style: AppStyling.medium16Black,
                       ),
-                      1.3.verticalSpace,
+                      1.verticalSpace,
                       Text(
                         message ?? '',
                         textAlign: TextAlign.center,
-                        style: AppStyling.regular14Black,
+                        style: AppStyling.regular14Black.copyWith(fontSize: 11.sp),
                       ),
-                      5.verticalSpace,
+                      3.verticalSpace,
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
