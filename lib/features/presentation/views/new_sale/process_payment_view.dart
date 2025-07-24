@@ -30,6 +30,7 @@ import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
+import 'package:thermal_printer/thermal_printer.dart';
 
 import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_images.dart';
@@ -54,7 +55,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
   String _paymentType = 'Cash';
   List<BillingItem> _billingItemList = [];
 
-  final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
+  // final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
   SalesInvoiceData invoiceData = SalesInvoiceData();
 
   final String _ip = '192.168.123.123';
@@ -62,30 +63,35 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
 
   final FocusNode _focusNode = FocusNode();
 
-  List<Printer> printers = [];
+  // List<Printer> printers = [];
+  // StreamSubscription<List<Printer>>? _devicesStreamSubscription;
 
-  StreamSubscription<List<Printer>>? _devicesStreamSubscription;
+  ///-----------------------------------------------------------------------------------------
+  final PrinterManager _printerManager = PrinterManager.instance;
+  List<PrinterDevice> _devices = [];
+  PrinterDevice? _selectedPrinter;
+  ///-----------------------------------------------------------------------------------------
 
   // Get Printer List
-  void startScan() async {
-    _devicesStreamSubscription?.cancel();
-    await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
-      ConnectionType.NETWORK,
-    ]);
-    _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
-        .listen((List<Printer> event) {
-      log(event.map((e) => e.name).toList().toString());
-      setState(() {
-        printers = event;
-        printers.removeWhere(
-            (element) => element.name == null || element.name == '');
-      });
-    });
-  }
-
-  stopScan() {
-    _flutterThermalPrinterPlugin.stopScan();
-  }
+  // void startScan() async {
+  //   _devicesStreamSubscription?.cancel();
+  //   await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
+  //     ConnectionType.NETWORK,
+  //   ]);
+  //   _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
+  //       .listen((List<Printer> event) {
+  //     log(event.map((e) => e.name).toList().toString());
+  //     setState(() {
+  //       printers = event;
+  //       printers.removeWhere(
+  //           (element) => element.name == null || element.name == '');
+  //     });
+  //   });
+  // }
+  //
+  // stopScan() {
+  //   _flutterThermalPrinterPlugin.stopScan();
+  // }
 
   String _formatCurrency(double amount) {
     return NumberFormat.currency(
@@ -112,12 +118,36 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
         .toList();
   }
 
+  // Scan for USB printers
+  void _scanForPrinters() {
+    _printerManager.discovery(type: PrinterType.usb).listen((device) {
+      setState(() {
+        _devices.add(device);
+      });
+    });
+    _connectDevice(_devices[0]);
+  }
+
+  // Connect to the selected USB printer
+  Future<void> _connectDevice(PrinterDevice device) async {
+    await _printerManager.connect(
+      type: PrinterType.usb,
+      model: UsbPrinterInput(
+        name: device.name,
+        productId: device.productId,
+        vendorId: device.vendorId,
+      ),
+    );
+    setState(() {
+      _selectedPrinter = device;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      startScan();
-    });
+    _scanForPrinters();
+
     _customerPaidController.text = "0.00";
     _focusNode.requestFocus();
     _billingItemList = convertStockToBillingItems(widget.params.cartItemList);
@@ -134,9 +164,13 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     required String cash,
     required String changes,
   }) async {
-    // final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
-    final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
-    await service.connect();
+    if (_selectedPrinter == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No printer selected')),
+      );
+      return;
+    }
+
     final bytes = await _generateReceipt(
       itemList: itemList,
       invoiceNo: invoiceNo,
@@ -148,8 +182,8 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
       cash: cash,
       changes: changes,
     );
-    await service.printTicket(bytes);
-    await service.disconnect();
+    await _printerManager.send(type: PrinterType.usb, bytes: bytes);
+    // await _printerManager.disconnect(type: PrinterType.usb);
   }
 
   @override
