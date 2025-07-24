@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:thermal_printer/esc_pos_utils_platform/src/capability_profile.dart';
 import 'package:thermal_printer/esc_pos_utils_platform/src/enums.dart';
@@ -43,6 +45,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
     _printerManager.discovery(type: PrinterType.usb).listen((device) {
       setState(() {
         _devices.add(device);
+        log("----Printers - $_devices");
       });
     });
   }
@@ -59,6 +62,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
     );
     setState(() {
       _selectedPrinter = device;
+      log("----Printers - $_selectedPrinter");
     });
   }
 
@@ -82,6 +86,7 @@ class _PrinterScreenState extends State<PrinterScreen> {
     );
     bytes += generator.text('This is a test print');
     bytes += generator.feed(2); // Feed two lines
+    bytes += generator.drawer(); // Feed two lines
     bytes += generator.cut(); // Cut the paper
 
     // Send print data to the printer

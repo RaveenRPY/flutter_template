@@ -38,10 +38,10 @@ class LoginBloc extends BaseBloc<LoginEvent, BaseState<LoginState>> {
           (l) {
             if (l is BaseResponse) {
               return LoginFailedState(
-                  errorCode: l.errorCode, errorMsg: l.message);
+                   errorMsg: l.message);
             } else {
               return LoginFailedState(
-                  errorCode: l.errorCode, errorMsg: l.toString());
+                   errorMsg: l.toString());
             }
           },
           (r) {

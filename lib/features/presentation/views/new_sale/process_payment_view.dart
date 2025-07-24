@@ -123,9 +123,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     _printerManager.discovery(type: PrinterType.usb).listen((device) {
       setState(() {
         _devices.add(device);
+        log("----Printers - $_devices");
       });
     });
-    _connectDevice(_devices[0]);
+    // _connectDevice(_devices[0]);
   }
 
   // Connect to the selected USB printer
@@ -147,10 +148,15 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
   void initState() {
     super.initState();
     _scanForPrinters();
-
     _customerPaidController.text = "0.00";
     _focusNode.requestFocus();
     _billingItemList = convertStockToBillingItems(widget.params.cartItemList);
+  }
+
+  @override
+  void didChangeDependencies() async {
+    await Future.delayed(Duration(seconds: 1),(){_connectDevice(_devices[0]);});
+    super.didChangeDependencies();
   }
 
   void printBill({
@@ -454,6 +460,8 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                           });
                                         },
                                       );
+                                      log("__ Device -- $_devices");
+                                      _connectDevice(_devices[0]);
                                     },
                                   ),
                                 ),
