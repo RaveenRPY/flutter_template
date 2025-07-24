@@ -134,6 +134,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     required String cash,
     required String changes,
   }) async {
+    // final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
     final service = FlutterThermalPrinterNetwork(_ip, port: int.parse(_port));
     await service.connect();
     final bytes = await _generateReceipt(

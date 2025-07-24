@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_auth_windows
   permission_handler_windows
   screen_retriever_windows
+  thermal_printer
   window_manager
 )
 
