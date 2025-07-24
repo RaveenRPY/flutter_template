@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'core/my_app.dart';
 import 'core/services/dependency_injection.dart' as di;
@@ -18,6 +19,26 @@ void main() async {
   );
   WidgetsFlutterBinding.ensureInitialized();
   await di.setupLocator();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Must add this line.
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = WindowOptions(
+    center: true,
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden,
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+    await windowManager.setFullScreen(true);
+    await windowManager.setResizable(false);
+    await windowManager.setAlwaysOnTop(true);
+    await windowManager.setSkipTaskbar(true);
+  });
 
   runApp(
     Sizer(
