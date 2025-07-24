@@ -279,7 +279,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                       width: 14,
                     ),
                     Expanded(
-                      flex: 2,
+                      flex: 1,
                       child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(

@@ -388,7 +388,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     final double textWidth = buttonText.length * 8.0;
 
     return Padding(
-      padding: EdgeInsets.all(11.sp),
+      padding: EdgeInsets.all(10.sp),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -398,7 +398,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
-                  width: 25.w,
+                  width: 20.w,
                   child: Form(
                     key: _searchKey,
                     child: TextFormField(
@@ -416,19 +416,20 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           borderSide: BorderSide(color: AppColors.transparent),
                         ),
                         // Adjusted padding
-                        prefixIcon: Padding(
-                          padding: EdgeInsets.only(left: 10.sp, right: 5.sp),
-                          child: Icon(
-                            HugeIcons.strokeRoundedSearch01,
-                            size: 15.sp,
-                            color: AppColors.darkGrey.withOpacity(0.7),
-                          ),
+                        prefixIcon: Icon(
+                          HugeIcons.strokeRoundedSearch01,
+                          size: 15.sp,
+                          color: AppColors.darkGrey.withOpacity(0.7),
                         ),
                         hintText: "Search here for product",
+                        isDense: true,
                         hintStyle: AppStyling.regular12Grey.copyWith(
-                            color: AppColors.darkGrey.withOpacity(0.5)),
+                            color: AppColors.darkGrey.withOpacity(0.5),
+                            height: 1,
+                            fontSize: 10.sp),
+                        // contentPadding: EdgeInsets.zero
                       ),
-                      style: AppStyling.medium16Black,
+                      style: AppStyling.medium14Black,
                       onChanged: (value) {
                         log(_searchController.text);
                         setState(() {});
@@ -456,12 +457,12 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       curve: Curves.easeInOut,
                       padding:
                           EdgeInsets.symmetric(horizontal: 10.sp, vertical: 0),
-                      width: textWidth + 25.sp,
+                      width: textWidth + 20.sp,
                       alignment: Alignment.center,
                       child: Text(
                         buttonText,
                         style:
-                            AppStyling.regular12White.copyWith(fontSize: 12.sp),
+                            AppStyling.regular12White.copyWith(fontSize: 11.sp),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -495,7 +496,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             Text(
                               'Refresh',
                               style: AppStyling.regular14Black
-                                  .copyWith(fontSize: 12.sp),
+                                  .copyWith(fontSize: 11.sp),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -530,7 +531,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             Text(
                               'New Tab',
                               style: AppStyling.regular12Black
-                                  .copyWith(fontSize: 12.sp),
+                                  .copyWith(fontSize: 11.sp),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -596,7 +597,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           ),
                           Text(
                             'Cashier',
-                            style: AppStyling.regular10Grey.copyWith(height: 1,fontSize: 10.sp),
+                            style: AppStyling.regular10Grey
+                                .copyWith(height: 1, fontSize: 10.sp),
                           ),
                         ],
                       ),
@@ -616,22 +618,22 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.sp),
           // Products Grid
           Expanded(
             child: Row(
               children: [
                 // Products Section
                 Expanded(
-                  flex: 2,
+                  flex: 5,
                   child: true ? _productSection() : _suggestionSection(),
                 ),
 
-                const SizedBox(width: 10),
+                SizedBox(width: 10.sp),
 
                 // Cart Section
                 Expanded(
-                  flex: 1,
+                  flex: 3,
                   child: _cartSection(),
                 ),
               ],
@@ -924,7 +926,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   Widget _productSection() {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 20, 10, 20),
+      padding: EdgeInsets.fromLTRB(12.sp, 14.sp, 10.sp, 14.sp),
       decoration: BoxDecoration(
           color: AppColors.whiteColor, borderRadius: BorderRadius.circular(30)),
       child: Column(
@@ -934,127 +936,127 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
             children: [
               Text(
                 'Products',
-                style: AppStyling.medium20Black,
+                style: AppStyling.medium16Black,
               ),
-              Spacer(),
-              // Fine-tuned modern filter toggle button
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _filtersEnabled = !_filtersEnabled;
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeInOutCubic,
-                  width: 70,
-                  height: 36,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: _filtersEnabled
-                        ? LinearGradient(
-                            colors: [
-                              AppColors.primaryColor.withOpacity(0.98),
-                              AppColors.primaryColor.withOpacity(0.85),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: !_filtersEnabled
-                        ? AppColors.lightGrey.withOpacity(0.8)
-                        : null,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _filtersEnabled
-                            ? AppColors.primaryColor.withOpacity(0.13)
-                            : Colors.black.withOpacity(0.06),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: _filtersEnabled
-                          ? AppColors.primaryColor
-                          : AppColors.darkGrey.withOpacity(0.10),
-                      width: 1.1,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      // Label
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 320),
-                        left: _filtersEnabled ? 18 : 40,
-                        right: _filtersEnabled ? 48 : 18,
-                        top: 0,
-                        bottom: 0,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 200),
-                            opacity: 1,
-                            child: Text(
-                              '|',
-                              style: AppStyling.regular12Black.copyWith(
-                                color: _filtersEnabled
-                                    ? Colors.white
-                                    : AppColors.darkGrey,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Knob
-                      AnimatedAlign(
-                        duration: const Duration(milliseconds: 320),
-                        curve: Curves.easeInOutCubic,
-                        alignment: _filtersEnabled
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.09),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: _filtersEnabled
-                                  ? AppColors.primaryColor.withOpacity(0.5)
-                                  : AppColors.lightGrey,
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.filter_alt_rounded,
-                              size: 18,
-                              color: _filtersEnabled
-                                  ? AppColors.primaryColor
-                                  : AppColors.darkGrey.withOpacity(0.7),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
+              // Spacer(),
+              // // Fine-tuned modern filter toggle button
+              // GestureDetector(
+              //   onTap: () {
+              //     setState(() {
+              //       _filtersEnabled = !_filtersEnabled;
+              //     });
+              //   },
+              //   child: AnimatedContainer(
+              //     duration: const Duration(milliseconds: 320),
+              //     curve: Curves.easeInOutCubic,
+              //     width: 70,
+              //     height: 36,
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              //     decoration: BoxDecoration(
+              //       gradient: _filtersEnabled
+              //           ? LinearGradient(
+              //               colors: [
+              //                 AppColors.primaryColor.withOpacity(0.98),
+              //                 AppColors.primaryColor.withOpacity(0.85),
+              //               ],
+              //               begin: Alignment.topLeft,
+              //               end: Alignment.bottomRight,
+              //             )
+              //           : null,
+              //       color: !_filtersEnabled
+              //           ? AppColors.lightGrey.withOpacity(0.8)
+              //           : null,
+              //       borderRadius: BorderRadius.circular(32),
+              //       boxShadow: [
+              //         BoxShadow(
+              //           color: _filtersEnabled
+              //               ? AppColors.primaryColor.withOpacity(0.13)
+              //               : Colors.black.withOpacity(0.06),
+              //           blurRadius: 8,
+              //           offset: Offset(0, 2),
+              //         ),
+              //       ],
+              //       border: Border.all(
+              //         color: _filtersEnabled
+              //             ? AppColors.primaryColor
+              //             : AppColors.darkGrey.withOpacity(0.10),
+              //         width: 1.1,
+              //       ),
+              //     ),
+              //     child: Stack(
+              //       alignment: Alignment.centerLeft,
+              //       children: [
+              //         // Label
+              //         AnimatedPositioned(
+              //           duration: const Duration(milliseconds: 320),
+              //           left: _filtersEnabled ? 18 : 40,
+              //           right: _filtersEnabled ? 48 : 18,
+              //           top: 0,
+              //           bottom: 0,
+              //           child: Align(
+              //             alignment: Alignment.center,
+              //             child: AnimatedOpacity(
+              //               duration: const Duration(milliseconds: 200),
+              //               opacity: 1,
+              //               child: Text(
+              //                 '|',
+              //                 style: AppStyling.regular12Black.copyWith(
+              //                   color: _filtersEnabled
+              //                       ? Colors.white
+              //                       : AppColors.darkGrey,
+              //                   fontWeight: FontWeight.w800,
+              //                   letterSpacing: 0.2,
+              //                 ),
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //         // Knob
+              //         AnimatedAlign(
+              //           duration: const Duration(milliseconds: 320),
+              //           curve: Curves.easeInOutCubic,
+              //           alignment: _filtersEnabled
+              //               ? Alignment.centerRight
+              //               : Alignment.centerLeft,
+              //           child: Container(
+              //             width: 28,
+              //             height: 28,
+              //             decoration: BoxDecoration(
+              //               color: Colors.white,
+              //               shape: BoxShape.circle,
+              //               boxShadow: [
+              //                 BoxShadow(
+              //                   color: Colors.black.withOpacity(0.09),
+              //                   blurRadius: 6,
+              //                   offset: Offset(0, 2),
+              //                 ),
+              //               ],
+              //               border: Border.all(
+              //                 color: _filtersEnabled
+              //                     ? AppColors.primaryColor.withOpacity(0.5)
+              //                     : AppColors.lightGrey,
+              //                 width: 1.0,
+              //               ),
+              //             ),
+              //             child: Center(
+              //               child: Icon(
+              //                 Icons.filter_alt_rounded,
+              //                 size: 18,
+              //                 color: _filtersEnabled
+              //                     ? AppColors.primaryColor
+              //                     : AppColors.darkGrey.withOpacity(0.7),
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+              // SizedBox(
+              //   width: 10,
+              // ),
             ],
           ),
           // const SizedBox(height: 20),
@@ -1073,8 +1075,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         final rowIndex = details.rowColumnIndex.rowIndex - 1;
                         if (rowIndex < _filteredStocks.length) {
                           final stock = _filteredStocks[rowIndex];
-                          print(
-                              'Tapped product: Name: ${stock.item?.description}, Code: ${stock.item?.code}, Price: ${stock.itemCost}');
                           if (_isProductInCart(
                               stock.item?.code ?? '', stock.labelPrice ?? 0)) {
                             _showDuplicateItemToast();
@@ -1097,7 +1097,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     columns: [
                       GridColumn(
                         columnName: 'name',
-                        width: 300,
+                        width: 19.w,
                         // Set a wider width for item names
                         label: Container(
                           decoration: BoxDecoration(
@@ -1108,11 +1108,12 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                           ),
                           alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 12.0),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 15.sp, vertical: 0.sp),
                           child: Text(
                             'Item Name',
-                            style: AppStyling.regular12Grey,
+                            style: AppStyling.regular12Grey
+                                .copyWith(fontSize: 11.sp),
                           ),
                         ),
                       ),
@@ -1123,9 +1124,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             color: AppColors.transparent,
                           ),
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 12.0),
-                          child: Text('Code', style: AppStyling.regular12Grey),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 0.sp, vertical: 0.sp),
+                          child: Text(
+                            'Code',
+                            style: AppStyling.regular12Grey
+                                .copyWith(fontSize: 11.sp),
+                          ),
                         ),
                       ),
                       GridColumn(
@@ -1135,23 +1140,30 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             color: AppColors.transparent,
                           ),
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 12.0),
-                          child: Text('Label Price',
-                              style: AppStyling.regular12Grey),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 5.sp, vertical: 0.sp),
+                          child: Text(
+                            'Label Price',
+                            style: AppStyling.regular12Grey
+                                .copyWith(fontSize: 11.sp),
+                          ),
                         ),
                       ),
                       GridColumn(
                         columnName: 'qty',
-                        width: 80,
+                        width: 8.w,
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
                           ),
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 12.0),
-                          child: Text('QTY', style: AppStyling.regular12Grey),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 5.sp, vertical: 0.sp),
+                          child: Text(
+                            'QTY',
+                            style: AppStyling.regular12Grey
+                                .copyWith(fontSize: 11.sp),
+                          ),
                         ),
                       ),
                       GridColumn(
@@ -1165,15 +1177,18 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                           ),
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 12.0),
-                          child: Text('Sale Price',
-                              style: AppStyling.regular12Grey),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 5.sp, vertical: 0.sp),
+                          child: Text(
+                            'Sale Price',
+                            style: AppStyling.regular12Grey
+                                .copyWith(fontSize: 11.sp),
+                          ),
                         ),
                       ),
                     ],
                     // headerRowHeight: 50,
-                    rowHeight: 40,
+                    rowHeight: 3.2.h,
                     gridLinesVisibility: GridLinesVisibility.horizontal,
                     headerGridLinesVisibility: GridLinesVisibility.horizontal,
                     columnWidthMode: ColumnWidthMode.fill,
@@ -1220,24 +1235,24 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(12.sp, 14.sp, 10.sp, 12.sp),
             child: Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.darkGrey.withOpacity(0.3),
-                          width: 1)),
-                  child: Icon(
-                    HugeIcons.strokeRoundedShoppingCart01,
-                    color: AppColors.darkBlue,
-                    size: 20,
-                  ),
-                ),
-                1.horizontalSpace,
+                // Container(
+                //   padding: EdgeInsets.all(8),
+                //   decoration: BoxDecoration(
+                //       color: AppColors.transparent,
+                //       borderRadius: BorderRadius.circular(12),
+                //       border: Border.all(
+                //           color: AppColors.darkGrey.withOpacity(0.3),
+                //           width: 1)),
+                //   child: Icon(
+                //     HugeIcons.strokeRoundedShoppingCart01,
+                //     color: AppColors.darkBlue,
+                //     size: 20,
+                //   ),
+                // ),
+                // 1.horizontalSpace,
                 Expanded(
                   child: _isSelectionMode
                       ? Text(
@@ -1249,12 +1264,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           children: [
                             Text(
                               'Cart',
-                              style: AppStyling.medium20Black,
+                              style: AppStyling.medium16Black,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: 7.sp),
                             Text(
                               '(${_cartItems.length})',
-                              style: AppStyling.regular18Black,
+                              style: AppStyling.regular16Grey
+                                  .copyWith(color: AppColors.darkBlue),
                             ),
                           ],
                         ),
@@ -1269,9 +1285,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     },
                     child: Text(
                       'Cancel',
-                      style: AppStyling.medium12Black.copyWith(
-                        color: AppColors.darkGrey,
-                      ),
+                      style: AppStyling.medium12Black
+                          .copyWith(color: AppColors.darkGrey, fontSize: 10.sp),
                     ),
                   ),
                   SizedBox(width: 8),
@@ -1281,15 +1296,16 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       style: TextButton.styleFrom(
                         backgroundColor: AppColors.red,
                         foregroundColor: AppColors.whiteColor,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 15.sp, vertical: 5.sp),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
                         'Delete',
-                        style: AppStyling.medium12White,
+                        style: AppStyling.medium10Black
+                            .copyWith(color: AppColors.whiteColor),
                       ),
                     ),
                 ] else ...[
@@ -1323,14 +1339,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       icon: Icon(
                         HugeIcons.strokeRoundedDelete03,
                         color: AppColors.red,
-                        size: 20,
+                        size: 13.sp,
                       ),
                     ),
                 ],
               ],
             ),
           ),
-          1.5.verticalSpace,
+          0.verticalSpace,
           Expanded(
             child: false
                 ? const Center(
@@ -1343,17 +1359,17 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           children: [
                             Icon(
                               HugeIcons.strokeRoundedShoppingCart01,
-                              size: 64,
+                              size: 25.sp,
                               color: AppColors.darkGrey.withOpacity(0.3),
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: 10.sp),
                             Text(
                               'Cart is empty',
                               style: AppStyling.medium14Black.copyWith(
                                 color: AppColors.darkGrey.withOpacity(0.5),
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(height: 5.sp),
                             Text(
                               'Add products to your cart',
                               style: AppStyling.regular12Grey.copyWith(
@@ -1364,7 +1380,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 12.sp),
                         itemCount: _cartItems.length,
                         itemBuilder: (context, index) {
                           final item = _cartItems[index];
@@ -1438,7 +1454,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               children: [
                 Container(
                   // height: 400,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 13.sp, vertical: 12.sp),
                   decoration: BoxDecoration(
                       color: AppColors.primaryColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20)),
@@ -1448,49 +1465,52 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       children: [
                         Text(
                           'Sub Total',
-                          style: AppStyling.medium14Black,
+                          style: AppStyling.medium12Black
+                              .copyWith(fontSize: 11.sp),
                         ),
                         Text(
                           _formatCurrency(_calculateCartTotal()),
-                          style: AppStyling.semi16Black,
+                          style: AppStyling.semi14Black,
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 7.sp),
                 Row(
                   children: [
                     Expanded(
                       child: AppMainButton(
                         prefixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 5),
+                          padding: EdgeInsets.only(right: 3.sp),
                           child: Icon(
                             HugeIcons.strokeRoundedUserAdd01,
                             color: AppColors.darkBlue,
+                            size: 13.sp,
                           ),
                         ),
                         color: AppColors.primaryColor.withOpacity(0.2),
-                        title: 'Select Customer',
-                        titleStyle: AppStyling.medium14Black
-                            .copyWith(color: AppColors.darkBlue),
+                        title: 'Customer',
+                        titleStyle: AppStyling.medium12Black.copyWith(
+                            color: AppColors.darkBlue, fontSize: 11.sp),
                         onTap: () {},
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 7.sp),
                     Expanded(
                       child: AppMainButton(
                         prefixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 5),
+                          padding: EdgeInsets.only(right: 3.sp),
                           child: Icon(
                             HugeIcons.strokeRoundedCancelCircle,
                             color: AppColors.red,
+                            size: 13.sp,
                           ),
                         ),
                         color: AppColors.red.withOpacity(0.15),
                         title: 'Cancel Sale',
-                        titleStyle: AppStyling.medium14Black
-                            .copyWith(color: AppColors.red),
+                        titleStyle: AppStyling.medium12Black
+                            .copyWith(color: AppColors.red, fontSize: 11.sp),
                         onTap: () {
                           AppDialogBox.show(
                             context,
@@ -1515,10 +1535,10 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 8.sp),
                 AppMainButton(
                   prefixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 5),
+                    padding: EdgeInsets.only(right: 4.sp),
                     child: Icon(HugeIcons.strokeRoundedCheckmarkBadge03),
                   ),
                   title: 'Checkout',
@@ -1664,7 +1684,7 @@ class StockDataSource extends DataGridSource {
           ),
           alignment: idx == 0 ? Alignment.centerLeft : Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
-          margin: EdgeInsets.fromLTRB(0, 2, isRetailPrice ? 8 : 0, 2),
+          margin: EdgeInsets.fromLTRB(0, 0, isRetailPrice ? 8 : 0, 0),
           child: Text(
             cell.value is double
                 ? (cell.columnName == 'labelPrice' ||
@@ -1678,16 +1698,17 @@ class StockDataSource extends DataGridSource {
                 : cell.value.toString(),
             overflow: TextOverflow.ellipsis,
             style: idx == 0
-                ? AppStyling.medium12Black
+                ? AppStyling.medium12Black.copyWith(fontSize: 11.sp)
                 : isRetailPrice
                     ? AppStyling.medium12Black
-                        .copyWith(color: Color(0xff1a932f))
+                        .copyWith(color: Color(0xff1a932f), fontSize: 11.sp)
                     : isQty
                         ? AppStyling.semi12Black.copyWith(
                             color: isLowQty
                                 ? AppColors.red
-                                : CupertinoColors.activeBlue)
-                        : AppStyling.medium12Black,
+                                : CupertinoColors.activeBlue,
+                            fontSize: 11.sp)
+                        : AppStyling.medium12Black.copyWith(fontSize: 11.sp),
           ),
         );
       }).toList(),

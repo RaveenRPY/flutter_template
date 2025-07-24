@@ -95,6 +95,7 @@ class _AppMainButtonState extends State<AppMainButton> {
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               widget.prefixIcon ?? const SizedBox(),
               widget.prefixIcon != null
@@ -108,6 +109,7 @@ class _AppMainButtonState extends State<AppMainButton> {
                             ? widget.titleStyle ?? AppStyling.medium14White
                             : AppStyling.medium14White
                         : widget.titleStyle ?? AppStyling.medium14Black,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

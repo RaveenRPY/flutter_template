@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../../../utils/app_colors.dart';
 import '../../../../../utils/app_spacing.dart';
@@ -52,8 +53,6 @@ class _CartItemState extends State<CartItem> {
     return Container(
       margin: EdgeInsets.only(
         bottom: widget.isLastItem ? 0 : 8,
-        left: 4,
-        right: 4,
       ),
       decoration: BoxDecoration(
         color: widget.isSelected
@@ -86,14 +85,14 @@ class _CartItemState extends State<CartItem> {
           splashColor: AppColors.primaryColor.withOpacity(0.1),
           highlightColor: AppColors.primaryColor.withOpacity(0.05),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding:  EdgeInsets.symmetric(horizontal: 10.sp, vertical: 10.sp),
             child: Row(
               children: [
                 // Selection Checkbox (only visible in selection mode)
                 if (widget.isSelectionMode) ...[
                   Container(
-                    width: 20,
-                    height: 20,
+                    width: 13.sp,
+                    height: 13.sp,
                     decoration: BoxDecoration(
                       color: widget.isSelected
                           ? AppColors.primaryColor
@@ -110,7 +109,7 @@ class _CartItemState extends State<CartItem> {
                     child: widget.isSelected
                         ? Icon(
                             Icons.check,
-                            size: 14,
+                            size: 10.sp,
                             color: AppColors.whiteColor,
                           )
                         : null,
@@ -120,8 +119,8 @@ class _CartItemState extends State<CartItem> {
 
                 // Product Image/Icon
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 18.sp,
+                  height: 18.sp,
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -140,7 +139,7 @@ class _CartItemState extends State<CartItem> {
                         )
                       : Icon(
                           HugeIcons.strokeRoundedPackage,
-                          size: 20,
+                          size: 13.sp,
                           color: AppColors.primaryColor.withOpacity(0.8),
                         ),
                 ),
@@ -163,11 +162,12 @@ class _CartItemState extends State<CartItem> {
                       0.3.verticalSpace,
                       // Product Code and Unit Price
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                            padding:  EdgeInsets.symmetric(
+                              horizontal: 5.sp,
+                              vertical: 3.sp,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.bgColor.withOpacity(0.8),
@@ -177,7 +177,7 @@ class _CartItemState extends State<CartItem> {
                               widget.productCode,
                               style: AppStyling.regular10Grey.copyWith(
                                 color: AppColors.darkGrey.withOpacity(0.7),
-                                fontSize: 11,
+                                fontSize: 9.sp,
                               ),
                             ),
                           ),

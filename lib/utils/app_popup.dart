@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:AventaPOS/features/presentation/widgets/app_main_button.dart';
 import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
+import 'package:AventaPOS/utils/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -110,7 +111,8 @@ class _PopupWindowState extends State<PopupWindow> {
     _stockController.text = widget.stockQty.toString();
 
     _qtyFocusNode.requestFocus();
-    _qtyController.text = (widget.qty ?? (widget.stockQty == 0 ? 0 : 1)).toString();
+    _qtyController.text =
+        (widget.qty ?? (widget.stockQty == 0 ? 0 : 1)).toString();
 
     _salePrice = widget.salePrice ?? 0;
     _qty = int.parse(_qtyController.text);
@@ -119,6 +121,7 @@ class _PopupWindowState extends State<PopupWindow> {
     isQtyValidated = _qty > 0;
     isCustomSalePriceValidated = true;
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -136,9 +139,9 @@ class _PopupWindowState extends State<PopupWindow> {
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Center(
           child: Container(
-            // margin: EdgeInsets.symmetric(horizontal: 30.w),
-            width: 30.w,
-            constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
+            width: 60.h,
+            height: 82.h,
+            constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 99.h),
             decoration: BoxDecoration(
                 color: AppColors.whiteColor,
                 borderRadius: BorderRadius.circular(30),
@@ -153,24 +156,27 @@ class _PopupWindowState extends State<PopupWindow> {
                 border: Border(
                     top: BorderSide(color: AppColors.primaryColor, width: 10))),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                // Compact Content
+                // Header (not scrollable)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(30, 5, 30, 30),
+                  padding: EdgeInsets.fromLTRB(20.sp, 15.sp, 20.sp, 5.sp),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 50),
+                        padding: EdgeInsets.only(
+                            top: 15.sp, left: 4.sp, right: 4.sp),
                         child: Text(
                           widget.itemName ?? "",
+                          maxLines: 2,
                           style:
                               AppStyling.medium25Black.copyWith(fontSize: 30),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Container(
-                        margin: EdgeInsets.only(top: 10, bottom: 35),
+                        margin: EdgeInsets.only(top: 8.sp, bottom: 20.sp),
                         padding: EdgeInsets.symmetric(
                           horizontal: 6,
                           vertical: 2,
@@ -187,222 +193,227 @@ class _PopupWindowState extends State<PopupWindow> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 5),
-                      // Product Info Card
-                      AventaFormField(
-                        controller: _labelPriceController,
-                        label: "Label Price",
-                        isCurrency: true,
-                        isReadOnly: true,
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      AventaFormField(
-                        controller: _salePriceController,
-                        label: "Sale Price",
-                        isCurrency: true,
-                        isReadOnly: true,
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      AventaFormField(
-                        controller: _stockController,
-                        label: "Available Qty",
-                        isReadOnly: true,
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Form(
-                              key: _newSalePriceFormKey,
-                              child: AventaFormField(
-                                controller: _newSalePriceController,
-                                label: "Custom Sale Price",
-                                isCurrency: true,
-                                showCurrencySymbol: true,
-                                onChanged: (value) {
-                                  setState(() {
-                                    // For currency fields, we need to parse the masked value
-                                    if (value.isNotEmpty) {
-                                      // Remove commas and parse the numeric value
-                                      String cleanValue =
-                                          value.replaceAll(',', '');
-                                      if (cleanValue.isNotEmpty) {
-                                        _salePrice =
-                                            double.tryParse(cleanValue) ?? 0.0;
-                                      }
-                                    }
-                                  });
-                                },
-                                validator: (price) {
-                                  if (price != null) {
-                                    if (double.parse(
-                                            price.replaceAll(',', '')) >
-                                        widget.labelPrice!) {
-                                      setState(() {
-                                        isCustomSalePriceValidated = false;
-                                      });
-                                      return 'Sale price can\'t exceed the MRP';
-                                    } else if (double.parse(
-                                            price.replaceAll(',', '')) <
-                                        (widget.cost ?? 1000)) {
-                                      setState(() {
-                                        isCustomSalePriceValidated = false;
-                                      });
-                                      return 'Please enter a higher price';
-                                    }
-                                  } else {
+                    ],
+                  ),
+                ),
+                // Middle: Scrollable text fields
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 15.sp),
+                    child: Column(
+                      children: [
+                        1.verticalSpace,
+                        AventaFormField(
+                          controller: _labelPriceController,
+                          label: "Label Price",
+                          isCurrency: true,
+                          isReadOnly: true,
+                        ),
+                        SizedBox(height: 13.sp),
+                        AventaFormField(
+                          controller: _salePriceController,
+                          label: "Sale Price",
+                          isCurrency: true,
+                          isReadOnly: true,
+                        ),
+                        SizedBox(height: 13.sp),
+                        AventaFormField(
+                          controller: _stockController,
+                          label: "Available Qty",
+                          isReadOnly: true,
+                        ),
+                        SizedBox(height: 13.sp),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Form(
+                                key: _newSalePriceFormKey,
+                                child: AventaFormField(
+                                  controller: _newSalePriceController,
+                                  label: "Custom Sale Price",
+                                  isCurrency: true,
+                                  showCurrencySymbol: true,
+                                  onChanged: (value) {
                                     setState(() {
-                                      isCustomSalePriceValidated = false;
+                                      if (value.isNotEmpty) {
+                                        String cleanValue =
+                                            value.replaceAll(',', '');
+                                        if (cleanValue.isNotEmpty) {
+                                          _salePrice =
+                                              double.tryParse(cleanValue) ??
+                                                  0.0;
+                                        }
+                                      }
                                     });
-                                    return 'Price can\'t be null';
-                                  }
+                                  },
+                                  validator: (price) {
+                                    if (price != null) {
+                                      if (double.parse(
+                                              price.replaceAll(',', '')) >
+                                          widget.labelPrice!) {
+                                        setState(() {
+                                          isCustomSalePriceValidated = false;
+                                        });
+                                        return 'Sale price can\'t exceed the MRP';
+                                      } else if (double.parse(
+                                              price.replaceAll(',', '')) <
+                                          (widget.cost ?? 1000)) {
+                                        setState(() {
+                                          isCustomSalePriceValidated = false;
+                                        });
+                                        return 'Please enter a higher price';
+                                      }
+                                    } else {
+                                      setState(() {
+                                        isCustomSalePriceValidated = false;
+                                      });
+                                      return 'Price can\'t be null';
+                                    }
+                                    setState(() {
+                                      isCustomSalePriceValidated = true;
+                                    });
+                                    return null;
+                                  },
+                                ),
+                                onChanged: () {
                                   setState(() {
-                                    isCustomSalePriceValidated = true;
+                                    _newSalePriceFormKey.currentState
+                                        ?.validate();
                                   });
-                                  return null;
                                 },
                               ),
-                              onChanged: () {
-                                setState(() {
-                                  _newSalePriceFormKey.currentState?.validate();
-                                });
-                              },
                             ),
-                          ),
-                          SizedBox(
-                            width: 15,
-                          ),
-                          Expanded(
-                            child: Form(
-                              key: _qtyFormKey,
-                              child: AventaFormField(
-                                focusNode: _qtyFocusNode,
-                                controller: _qtyController,
-                                label: "Qty",
-                                validator: (qty) {
-                                  if (qty != null) {
-                                    if (int.parse(qty) > widget.stockQty!) {
+                            SizedBox(width: 12.sp),
+                            Expanded(
+                              child: Form(
+                                key: _qtyFormKey,
+                                child: AventaFormField(
+                                  focusNode: _qtyFocusNode,
+                                  controller: _qtyController,
+                                  label: "Qty",
+                                  validator: (qty) {
+                                    if (qty != null) {
+                                      if (int.parse(qty) > widget.stockQty!) {
+                                        setState(() {
+                                          isQtyValidated = false;
+                                        });
+                                        return 'Not enough stock. Choose a lower quantity';
+                                      } else if (int.parse(qty) == 0) {
+                                        setState(() {
+                                          isQtyValidated = false;
+                                        });
+                                        return 'Qty cannot be zero';
+                                      }
+                                    } else {
                                       setState(() {
                                         isQtyValidated = false;
                                       });
-                                      return 'Not enough stock. Choose a lower quantity';
-                                    } else if (int.parse(qty) == 0) {
-                                      setState(() {
-                                        isQtyValidated = false;
-                                      });
-                                      return 'Qty cannot be zero';
+                                      return 'Qty cannot be null';
                                     }
-                                  } else {
                                     setState(() {
-                                      isQtyValidated = false;
+                                      isQtyValidated = true;
                                     });
-                                    return 'Qty cannot be null';
-                                  }
-                                  setState(() {
-                                    isQtyValidated = true;
-                                  });
-                                  return null;
-                                },
-                                textInputType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _qty = int.tryParse(value) ?? 1;
-                                  });
+                                    return null;
+                                  },
+                                  textInputType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _qty = int.tryParse(value) ?? 1;
+                                    });
+                                    _qtyFormKey.currentState?.validate();
+                                  },
+                                ),
+                                onChanged: () {
                                   _qtyFormKey.currentState?.validate();
                                 },
-                              ),
-                              onChanged: () {
-                                _qtyFormKey.currentState?.validate();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 45),
-
-                      // Total Amount
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.primaryColor.withOpacity(0.08),
-                              AppColors.primaryColor.withOpacity(0.03),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.primaryColor.withOpacity(0.15),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Amount:',
-                              style: AppStyling.medium14Black.copyWith(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Rs. ${NumberFormat.currency(locale: 'en_US', symbol: '', decimalDigits: 2).format(_salePrice * _qty)}',
-                              style: AppStyling.semi16Black.copyWith(
-                                color: AppColors.primaryColor,
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                      ),
-
-                      SizedBox(height: 2.5.h),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppMainButton(
-                              title: "Cancel",
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              color: AppColors.darkGrey.withOpacity(0.15),
-                              titleStyle: AppStyling.regular14Black
-                                  .copyWith(color: AppColors.darkGrey),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                              child: AppMainButton(
-                            title: widget.isForEdit! ? "Save" : "Add to Cart",
-                            isEnable: (isQtyValidated && isCustomSalePriceValidated && _qty > 0),
-                            onTap: () {
-                              // Create a Product object and add to cart
-                              if (widget.onAddToCart != null) {
-                                widget.onAddToCart!(
-                                    widget.stock!, _qty, _salePrice);
-                              }
-                              Navigator.pop(context);
-                            },
-                          ))
+                        SizedBox(height: 10.sp),
+                      ],
+                    ),
+                  ),
+                ),
+                // Total Amount (not scrollable)
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 15.sp, vertical: 5.sp),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 12.sp, vertical: 12.sp),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryColor.withOpacity(0.08),
+                          AppColors.primaryColor.withOpacity(0.03),
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.primaryColor.withOpacity(0.15),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Amount:',
+                          style: AppStyling.medium14Black.copyWith(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          'Rs. ${NumberFormat.currency(locale: 'en_US', symbol: '', decimalDigits: 2).format(_salePrice * _qty)}',
+                          style: AppStyling.semi16Black.copyWith(
+                            color: AppColors.primaryColor,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Action Buttons (not scrollable)
+                Padding(
+                  padding: EdgeInsets.all(15.sp),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AppMainButton(
+                          title: "Cancel",
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          color: AppColors.darkGrey.withOpacity(0.15),
+                          titleStyle: AppStyling.regular14Black
+                              .copyWith(color: AppColors.darkGrey),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: AppMainButton(
+                          title: widget.isForEdit! ? "Save" : "Add to Cart",
+                          isEnable: (isQtyValidated &&
+                              isCustomSalePriceValidated &&
+                              _qty > 0),
+                          onTap: () {
+                            if (widget.onAddToCart != null) {
+                              widget.onAddToCart!(
+                                  widget.stock!, _qty, _salePrice);
+                            }
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
                     ],
                   ),
