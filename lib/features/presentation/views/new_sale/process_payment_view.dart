@@ -15,6 +15,7 @@ import 'package:AventaPOS/features/presentation/widgets/zynolo_form_field.dart';
 import 'package:AventaPOS/utils/app_constants.dart';
 import 'package:AventaPOS/utils/app_stylings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart'
@@ -117,6 +118,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       startScan();
     });
+    _customerPaidController.text = "0.00";
     _focusNode.requestFocus();
     _billingItemList = convertStockToBillingItems(widget.params.cartItemList);
   }
@@ -192,9 +194,12 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               animationType: AnimationType.fromTop,
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
-            // setState(() {
-            //   widget.params.onPop!(true);
-            // });
+
+            Future.delayed(Duration(seconds: 2), () {
+              setState(() {
+                widget.params.onPop!(true);
+              });
+            });
           } else if (state is CheckoutFailedState) {
             FocusManager.instance.primaryFocus?.unfocus();
             AppDialogBox.show(
@@ -268,6 +273,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                           changes: change.toString(),
                           invoiceDate: DateTime.now(),
                           invoiceNo: "XXXXXXXXXX",
+                          isRetail: widget.params.isRetail ?? true,
                           outlet: AppConstants
                               .profileData!.location!.description
                               .toString(),
@@ -317,6 +323,8 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                               controller: _customerPaidController,
                               focusNode: _focusNode,
                               isCurrency: true,
+                              showCurrencySymbol: true,
+                              textInputType: TextInputType.number,
                               onChanged: (val) {
                                 setState(() {
                                   _customerPaid = double.tryParse(
@@ -424,7 +432,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                         ? () {
                                             _bloc.add(CheckOutEvent(
                                                 remark: "",
-                                                salesType: "NORMAL",
+                                                salesType:
+                                                    widget.params.isRetail!
+                                                        ? "NORMAL"
+                                                        : "WHOLESALE",
                                                 paymentType: "CASH",
                                                 totalAmount: grandTotal,
                                                 payAmount: _customerPaid,
@@ -502,7 +513,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
 
     bytes += generator.text('');
     bytes += generator.text(
-      'SALES INVOICE',
+      widget.params.isRetail! ? 'SALES INVOICE' : 'WHOLESALE INVOICE',
       styles: PosStyles(align: PosAlign.center, bold: true),
     );
     bytes += generator.hr();
@@ -664,6 +675,11 @@ class PaymentParams {
   final List<Stock> cartItemList;
   final double total;
   final Function? onPop;
+  final bool? isRetail;
 
-  PaymentParams({required this.cartItemList, required this.total, this.onPop});
+  PaymentParams(
+      {required this.cartItemList,
+      required this.total,
+      this.onPop,
+      this.isRetail});
 }

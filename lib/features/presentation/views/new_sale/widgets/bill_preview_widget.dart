@@ -15,6 +15,7 @@ class ReceiptPreview extends StatelessWidget {
   final String total;
   final String cash;
   final String changes;
+  final bool isRetail;
 
   const ReceiptPreview({
     super.key,
@@ -27,6 +28,7 @@ class ReceiptPreview extends StatelessWidget {
     required this.total,
     required this.cash,
     required this.changes,
+    required this.isRetail,
   });
 
   String _formatCurrency(num amount) {
@@ -67,7 +69,7 @@ class ReceiptPreview extends StatelessWidget {
               const SizedBox(height: 8),
               Divider(thickness: 1, color: AppColors.blackColor),
               Center(
-                child: Text('SALES INVOICE', style: AppStyling.semi14Black.copyWith(fontWeight: FontWeight.bold)),
+                child: Text( isRetail ?'SALES INVOICE' : 'WHOLESALE INVOICE', style: AppStyling.semi14Black.copyWith(fontWeight: FontWeight.bold)),
               ),
               Divider(thickness: 1, color: AppColors.blackColor),
               Text('Date       : ${DateFormat('yyyy/MM/dd hh:mm:ss a').format(invoiceDate)}'),

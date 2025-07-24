@@ -20,25 +20,22 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await di.setupLocator();
 
-  WidgetsFlutterBinding.ensureInitialized();
-
   // Must add this line.
-  await windowManager.ensureInitialized();
-
-  WindowOptions windowOptions = WindowOptions(
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-    await windowManager.setFullScreen(true);
-    await windowManager.setResizable(false);
-    await windowManager.setAlwaysOnTop(true);
-    await windowManager.setSkipTaskbar(true);
-  });
+  // await windowManager.ensureInitialized();
+  //
+  // WindowOptions windowOptions = WindowOptions(
+  //   center: true,
+  //   backgroundColor: Colors.transparent,
+  //   skipTaskbar: false,
+  //   titleBarStyle: TitleBarStyle.hidden,
+  // );
+  // windowManager.waitUntilReadyToShow(windowOptions, () async {
+  //   await windowManager.show();
+  //   await windowManager.focus();
+  //   await windowManager.setFullScreen(true);
+  //   await windowManager.setResizable(false);
+  //   await windowManager.setAlwaysOnTop(true);
+  // });
 
   runApp(
     Sizer(

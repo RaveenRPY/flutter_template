@@ -67,222 +67,229 @@ class CartItem extends StatelessWidget {
   }
 
   Widget _buildCompactCartItem(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: isLastItem ? 0 : 6),
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryColor.withOpacity(0.08) : AppColors.whiteColor,
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : AppColors.darkBlue.withOpacity(0.15),
-          width: isSelected ? 2 : 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Selection Checkbox and Image
-          Column(
-            children: [
-              if (isSelectionMode)
-                Container(
-                  width: 18,
-                  height: 18,
-                  margin: EdgeInsets.only(bottom: 4),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? AppColors.primaryColor : AppColors.darkGrey.withOpacity(0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: isSelected
-                      ? Icon(Icons.check, size: 14, color: AppColors.whiteColor)
-                      : null,
-                ),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.primaryColor.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: productImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.asset(
-                          productImage!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Icon(
-                        HugeIcons.strokeRoundedPackage,
-                        size: 18,
-                        color: AppColors.primaryColor.withOpacity(0.8),
-                      ),
-              ),
-            ],
+        splashColor: AppColors.primaryColor.withOpacity(0.1),
+        highlightColor: AppColors.primaryColor.withOpacity(0.05),
+        child: Container(
+          margin: EdgeInsets.only(bottom: isLastItem ? 0 : 6),
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primaryColor.withOpacity(0.08) : AppColors.whiteColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : AppColors.darkBlue.withOpacity(0.15),
+              width: isSelected ? 2 : 1,
+            ),
           ),
-          SizedBox(width: 8),
-          // Main Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Name
-                Text(
-                  productName,
-                  style: AppStyling.semi12Black.copyWith(fontSize: 12),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 2),
-                // Product Code and Unit Price
-                Row(
-                  children: [
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Selection Checkbox and Image
+              Column(
+                children: [
+                  if (isSelectionMode)
                     Container(
-                      padding:  EdgeInsets.symmetric(
-                        horizontal: 8.sp,
-                        vertical: 6.sp,
-                      ),
+                      width: 18,
+                      height: 18,
+                      margin: EdgeInsets.only(bottom: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.bgColor.withOpacity(1),
-                        borderRadius: BorderRadius.circular(4),
+                        color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? AppColors.primaryColor : AppColors.darkGrey.withOpacity(0.3),
+                          width: 2,
+                        ),
                       ),
-                      child: Text(
-                        productCode,
-                        style: AppStyling.regular10Grey.copyWith(fontSize: 10.5.sp, color: AppColors.darkBlue.withOpacity(0.7),height: 1),
-                        overflow: TextOverflow.ellipsis,
-
+                      child: isSelected
+                          ? Icon(Icons.check, size: 14, color: AppColors.whiteColor)
+                          : null,
+                    ),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppColors.primaryColor.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
-                    Spacer(),
+                    child: productImage != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.asset(
+                              productImage!,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Icon(
+                            HugeIcons.strokeRoundedPackage,
+                            size: 18,
+                            color: AppColors.primaryColor.withOpacity(0.8),
+                          ),
+                  ),
+                ],
+              ),
+              SizedBox(width: 8),
+              // Main Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
                     Text(
-                      NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(unitPrice),
-                      style: AppStyling.regular10Grey.copyWith(fontSize: 10, color: AppColors.darkGrey.withOpacity(0.6)),
+                      productName,
+                      style: AppStyling.semi12Black.copyWith(fontSize: 12),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-                1.verticalSpace,
-                // Quantity Controls and Total Price
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-
-                    // Quantity Controls
-                    if (!isSelectionMode)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.bgColor.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.darkGrey.withOpacity(0.1),
-                            width: 1,
+                    SizedBox(height: 2),
+                    // Product Code and Unit Price
+                    Row(
+                      children: [
+                        Container(
+                          padding:  EdgeInsets.symmetric(
+                            horizontal: 8.sp,
+                            vertical: 6.sp,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgColor.withOpacity(1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            productCode,
+                            style: AppStyling.regular10Grey.copyWith(fontSize: 10.5.sp, color: AppColors.darkBlue.withOpacity(0.7),height: 1),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Decrease Button
-                            Material(
-                              color: AppColors.transparent,
-                              child: InkWell(
-                                onTap: onDecrement,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(8),
-                                  bottomLeft: Radius.circular(8),
-                                ),
-                                splashColor:
-                                AppColors.primaryColor.withOpacity(0.2),
-                                highlightColor:
-                                AppColors.primaryColor.withOpacity(0.1),
-                                child: Container(
-                                  padding: EdgeInsets.all(6.sp),
-                                  child: Icon(
-                                    Icons.remove,
-                                    size: 13,
-                                    color: AppColors.darkBlue.withOpacity(0.8),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            // Quantity Display
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.whiteColor,
-                                border: Border.symmetric(
-                                  horizontal: BorderSide(
-                                    color: AppColors.darkGrey.withOpacity(0.1),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                quantity.toString(),
-                                style: AppStyling.semi12Black.copyWith(
-                                  color: AppColors.darkBlue,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                            // Increase Button
-                            Material(
-                              color: AppColors.transparent,
-                              child: InkWell(
-                                onTap: onIncrement,
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(8),
-                                  bottomRight: Radius.circular(8),
-                                ),
-                                splashColor:
-                                AppColors.primaryColor.withOpacity(0.2),
-                                highlightColor:
-                                AppColors.primaryColor.withOpacity(0.1),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  child: Icon(
-                                    Icons.add,
-                                    size: 13,
-                                    color: AppColors.darkBlue.withOpacity(0.8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        Spacer(),
+                        Text(
+                          NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(unitPrice),
+                          style: AppStyling.regular10Grey.copyWith(fontSize: 10, color: AppColors.darkGrey.withOpacity(0.6)),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    Spacer(),
-                    // Total Price
-                    Text(
-                      NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(totalPrice),
-                      style: AppStyling.semi12Black.copyWith(fontSize: 12, color: AppColors.darkBlue),
-                      overflow: TextOverflow.ellipsis,
+                      ],
+                    ),
+                    1.verticalSpace,
+                    // Quantity Controls and Total Price
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Quantity Controls
+                        if (!isSelectionMode)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.bgColor.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.darkGrey.withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Decrease Button
+                                Material(
+                                  color: AppColors.transparent,
+                                  child: InkWell(
+                                    onTap: onDecrement,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(8),
+                                      bottomLeft: Radius.circular(8),
+                                    ),
+                                    splashColor:
+                                    AppColors.primaryColor.withOpacity(0.2),
+                                    highlightColor:
+                                    AppColors.primaryColor.withOpacity(0.1),
+                                    child: Container(
+                                      padding: EdgeInsets.all(6.sp),
+                                      child: Icon(
+                                        Icons.remove,
+                                        size: 13,
+                                        color: AppColors.darkBlue.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // Quantity Display
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.whiteColor,
+                                    border: Border.symmetric(
+                                      horizontal: BorderSide(
+                                        color: AppColors.darkGrey.withOpacity(0.1),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    quantity.toString(),
+                                    style: AppStyling.semi12Black.copyWith(
+                                      color: AppColors.darkBlue,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                // Increase Button
+                                Material(
+                                  color: AppColors.transparent,
+                                  child: InkWell(
+                                    onTap: onIncrement,
+                                    borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(8),
+                                      bottomRight: Radius.circular(8),
+                                    ),
+                                    splashColor:
+                                    AppColors.primaryColor.withOpacity(0.2),
+                                    highlightColor:
+                                    AppColors.primaryColor.withOpacity(0.1),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 13,
+                                        color: AppColors.darkBlue.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Spacer(),
+                        // Total Price
+                        Text(
+                          NumberFormat.currency(locale: 'en_US', symbol: 'Rs. ', decimalDigits: 2).format(totalPrice),
+                          style: AppStyling.semi12Black.copyWith(fontSize: 12, color: AppColors.darkBlue),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              // Remove Button (optional, can be an icon at the end)
+              if (onRemove != null)
+                IconButton(
+                  icon: Icon(Icons.close, size: 18, color: AppColors.darkGrey.withOpacity(0.5)),
+                  onPressed: onRemove,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                ),
+            ],
           ),
-          // Remove Button (optional, can be an icon at the end)
-          if (onRemove != null)
-            IconButton(
-              icon: Icon(Icons.close, size: 18, color: AppColors.darkGrey.withOpacity(0.5)),
-              onPressed: onRemove,
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(),
-            ),
-        ],
+        ),
       ),
     );
   }

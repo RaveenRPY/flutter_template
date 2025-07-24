@@ -370,6 +370,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 params: PaymentParams(
                     cartItemList: _cartItems,
                     total: _calculateCartTotal(),
+                    isRetail: _isRetail,
                     onPop: (bool? isNew) {
                       setState(() {
                         _isCheckOutPage = false;
@@ -418,7 +419,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         // Adjusted padding
                         prefixIcon: Icon(
                           HugeIcons.strokeRoundedSearch01,
-                          size: 15.sp,
+                          size: 13.sp,
                           color: AppColors.darkGrey.withOpacity(0.7),
                         ),
                         hintText: "Search here for product",
@@ -588,7 +589,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Jason Derulo',
+                            AppConstants.username ?? "User",
                             style:
                                 AppStyling.regular14Black.copyWith(height: 1),
                           ),
@@ -674,7 +675,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 Expanded(
                   child: SfDataGrid(
                     allowColumnsResizing: true,
-                    source: StockDataSource(_filteredStocks),
+                    source: StockDataSource(_filteredStocks, _isRetail),
                     onCellTap: (details) {
                       if (details.rowColumnIndex.rowIndex > 0) {
                         final rowIndex = details.rowColumnIndex.rowIndex - 1;
@@ -1066,10 +1067,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     allowSorting: _filtersEnabled,
                     allowColumnsResizing: true,
                     controller: _tableController,
-                    // allowColumnsDragging: true,
-                    // frozenRowsCount: 2,
-                    // sortIconColor: AppColors.primaryColor,
-                    source: StockDataSource(_filteredStocks),
+                    source: StockDataSource(_filteredStocks, _isRetail),
                     onCellTap: (details) {
                       if (details.rowColumnIndex.rowIndex > 0) {
                         final rowIndex = details.rowColumnIndex.rowIndex - 1;
@@ -1085,7 +1083,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               itemCode: stock.item?.code,
                               itemName: stock.item?.description,
                               labelPrice: stock.labelPrice,
-                              salePrice: stock.retailPrice,
+                              salePrice: _isRetail ? stock.retailPrice : stock.wholesalePrice,
                               stockQty: stock.qty,
                               cost: stock.itemCost,
                               onAddToCart: addProductToCart,
@@ -1097,7 +1095,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     columns: [
                       GridColumn(
                         columnName: 'name',
-                        width: 19.w,
+                        width: 17.w,
+
                         // Set a wider width for item names
                         label: Container(
                           decoration: BoxDecoration(
@@ -1119,13 +1118,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       GridColumn(
                         columnName: 'code',
+                        // width: 11.w,
+                        columnWidthMode: ColumnWidthMode.fitByCellValue,
+                        autoFitPadding: EdgeInsets.zero,
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
                           ),
                           alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 0.sp, vertical: 0.sp),
                           child: Text(
                             'Code',
                             style: AppStyling.regular12Grey
@@ -1135,6 +1135,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       GridColumn(
                         columnName: 'labelPrice',
+                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
@@ -1152,6 +1153,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       GridColumn(
                         columnName: 'qty',
                         width: 8.w,
+                        columnWidthMode: ColumnWidthMode.fitByCellValue,
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
@@ -1168,6 +1170,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       GridColumn(
                         columnName: 'salePrice',
+                        // width: 10.w,
+                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
                         label: Container(
                           decoration: BoxDecoration(
                             color: AppColors.transparent,
@@ -1177,10 +1181,11 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                           ),
                           alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 5.sp, vertical: 0.sp),
+                          padding: EdgeInsets.only(
+                             right: 5.sp),
                           child: Text(
-                            'Sale Price',
+                            _isRetail ? 'Sale Price' : 'Wholesale Price',
+                            textAlign: TextAlign.center,
                             style: AppStyling.regular12Grey
                                 .copyWith(fontSize: 11.sp),
                           ),
@@ -1188,7 +1193,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                     ],
                     // headerRowHeight: 50,
-                    rowHeight: 3.2.h,
+                    rowHeight: 4.h,
                     gridLinesVisibility: GridLinesVisibility.horizontal,
                     headerGridLinesVisibility: GridLinesVisibility.horizontal,
                     columnWidthMode: ColumnWidthMode.fill,
@@ -1256,7 +1261,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 Expanded(
                   child: _isSelectionMode
                       ? Text(
-                          'Select Items (${_selectedItems.length} selected)',
+                          'Select Items (${_selectedItems.length})',
                           style: AppStyling.regular16Grey,
                         )
                       : Row(
@@ -1286,7 +1291,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     child: Text(
                       'Cancel',
                       style: AppStyling.medium12Black
-                          .copyWith(color: AppColors.darkGrey, fontSize: 10.sp),
+                          .copyWith(color: AppColors.darkGrey, fontSize: 11.sp),
                     ),
                   ),
                   SizedBox(width: 8),
@@ -1304,8 +1309,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       child: Text(
                         'Delete',
-                        style: AppStyling.medium10Black
-                            .copyWith(color: AppColors.whiteColor),
+                        style: AppStyling.regular14Grey.copyWith(
+                            color: AppColors.whiteColor, fontSize: 11.sp),
                       ),
                     ),
                 ] else ...[
@@ -1638,7 +1643,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 class StockDataSource extends DataGridSource {
   List<DataGridRow> _rows = [];
 
-  StockDataSource(List<Stock> stocks) {
+  StockDataSource(List<Stock> stocks, bool isRetail) {
     _rows = stocks.map<DataGridRow>((stock) {
       return DataGridRow(cells: [
         DataGridCell<String>(
@@ -1648,7 +1653,8 @@ class StockDataSource extends DataGridSource {
             columnName: 'labelPrice', value: stock.labelPrice ?? 0),
         DataGridCell<int>(columnName: 'qty', value: stock.qty ?? 0),
         DataGridCell<double>(
-            columnName: 'retailPrice', value: stock.retailPrice ?? 0),
+            columnName: 'retailPrice',
+            value: isRetail ? stock.retailPrice : stock.wholesalePrice),
       ]);
     }).toList();
   }
@@ -1685,8 +1691,8 @@ class StockDataSource extends DataGridSource {
                 : AppColors.bgColor.withOpacity(0.65),
           ),
           alignment: idx == 0 ? Alignment.centerLeft : Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
-          margin: EdgeInsets.fromLTRB(0, 0, isRetailPrice ? 8 : 0, 0),
+          padding:  EdgeInsets.only(left: idx == 0 ? 13.sp:0),
+          margin: EdgeInsets.fromLTRB(0, 0, isRetailPrice ? 8 : 0, 3),
           child: Text(
             cell.value is double
                 ? (cell.columnName == 'labelPrice' ||
