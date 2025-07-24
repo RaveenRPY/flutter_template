@@ -67,7 +67,7 @@ class _PopupWindowState extends State<OpeningBalance> {
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Center(
           child: Container(
-            width: 30.w,
+            width: 55.h,
             constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
             decoration: BoxDecoration(
                 color: AppColors.whiteColor,
@@ -87,20 +87,21 @@ class _PopupWindowState extends State<OpeningBalance> {
               children: [
                 // Compact Content
                 Padding(
-                  padding: EdgeInsets.fromLTRB(30, 5, 30, 30),
+                  padding: EdgeInsets.all(3.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 30),
+                        padding:  EdgeInsets.only(top: 1.h),
                         child: Text(
                           "Cashier Opening Balance",
+                          textAlign: TextAlign.center,
                           style:
-                              AppStyling.medium25Black.copyWith(fontSize: 27),
+                              AppStyling.medium25Black.copyWith(fontSize: 15.sp),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 20),
+                        padding:  EdgeInsets.only(top: 10.sp),
                         child: Text(
                           "Add opening balance to : ${AppConstants.profileData?.username} @ ${AppConstants.profileData?.location?.description}",
                           style:

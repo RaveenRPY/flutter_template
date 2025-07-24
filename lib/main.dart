@@ -23,11 +23,7 @@ void main() async {
     Sizer(
       builder: (context, orientation, deviceType) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaleFactor: MediaQuery.of(
-              context,
-            ).textScaleFactor.clamp(0.5, 1.4),
-          ),
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
           child: const MyApp(),
         );
       },

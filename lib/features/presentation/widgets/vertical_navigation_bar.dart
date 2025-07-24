@@ -1,5 +1,6 @@
 import 'package:AventaPOS/features/presentation/widgets/app_dialog_box.dart';
 import 'package:AventaPOS/utils/app_images.dart';
+import 'package:AventaPOS/utils/app_spacing.dart';
 import 'package:AventaPOS/utils/navigation_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -25,15 +26,16 @@ class VerticalNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 65,
+      width: 5.w,
       decoration: const BoxDecoration(
         color: AppColors.primaryColor,
       ),
       child: Column(
         children: [
+          2.verticalSpace,
           // App Logo/Title Section
           SizedBox(
-            height: 90,
+            width: 2.5.w,
             child: Center(
               child: SvgPicture.asset(AppImages.logo),
             ),
@@ -42,7 +44,7 @@ class VerticalNavigationBar extends StatelessWidget {
           // Navigation Items
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 2),
+              padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 0.w),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
@@ -66,7 +68,7 @@ class VerticalNavigationBar extends StatelessWidget {
                 onTap: () {},
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(10, 5, 10, 30),
+                padding: EdgeInsets.fromLTRB(5, 5, 5, 3.h),
                 child: Material(
                   color: AppColors.transparent,
                   child: InkWell(
@@ -89,13 +91,16 @@ class VerticalNavigationBar extends StatelessWidget {
                         negativeButtonTap: () {},
                       );
                     },
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(90),
                     child: Container(
-                      padding: EdgeInsets.all(15),
+                      width: 4.w,
+                      height: 4.w,
+                      padding: EdgeInsets.all(0),
                       decoration: BoxDecoration(
                           color: AppColors.whiteColor.withOpacity(0.2),
                           shape: BoxShape.circle),
-                      child: Icon(size: 20, Icons.logout, color: AppColors.red),
+                      child:
+                          Icon(size: 15.sp, Icons.logout, color: AppColors.red),
                     ),
                   ),
                 ),
@@ -131,8 +136,6 @@ class _NavigationItem extends StatelessWidget {
           child: AspectRatio(
             aspectRatio: 1,
             child: Container(
-              width: 40,
-              height: 40,
               padding: EdgeInsets.all(0),
               decoration: BoxDecoration(
                 color: isSelected
@@ -149,7 +152,7 @@ class _NavigationItem extends StatelessWidget {
                 // HugeIcons.strokeRoundedReturnRequest,
                 // HugeIcons.strokeRoundedReturnRequest,
                 item.icon,
-                size: 20,
+                size: 15.sp,
                 color: isSelected
                     ? AppColors.darkBlue
                     : AppColors.whiteColor.withOpacity(0.7),

@@ -26,6 +26,7 @@ import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:sizer/sizer.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import '../../../../core/services/dependency_injection.dart';
 import '../../../../utils/app_colors.dart';
@@ -372,7 +373,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     onPop: (bool? isNew) {
                       setState(() {
                         _isCheckOutPage = false;
-                        if(isNew ?? false){
+                        if (isNew ?? false) {
                           _cartItems.clear();
                           _searchController.clear();
                         }
@@ -387,7 +388,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
     final double textWidth = buttonText.length * 8.0;
 
     return Padding(
-      padding: const EdgeInsets.all(14.0),
+      padding: EdgeInsets.all(11.sp),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -397,7 +398,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
-                  width: 350,
+                  width: 25.w,
                   child: Form(
                     key: _searchKey,
                     child: TextFormField(
@@ -416,10 +417,10 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                         // Adjusted padding
                         prefixIcon: Padding(
-                          padding: const EdgeInsets.only(left: 10, right: 5),
+                          padding: EdgeInsets.only(left: 10.sp, right: 5.sp),
                           child: Icon(
                             HugeIcons.strokeRoundedSearch01,
-                            size: 20,
+                            size: 15.sp,
                             color: AppColors.darkGrey.withOpacity(0.7),
                           ),
                         ),
@@ -453,13 +454,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
-                      width: textWidth + 60,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10.sp, vertical: 0),
+                      width: textWidth + 25.sp,
                       alignment: Alignment.center,
                       child: Text(
                         buttonText,
-                        style: AppStyling.regular12White,
+                        style:
+                            AppStyling.regular12White.copyWith(fontSize: 12.sp),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -477,22 +479,23 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       _stockBloc.add(GetStockEvent());
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 13.sp, vertical: 0),
                       child: Center(
                         child: Row(
                           children: [
                             Icon(
                               HugeIcons.strokeRoundedRefresh,
-                              size: 20,
+                              size: 13.sp,
                               color: AppColors.darkBlue,
                             ),
                             SizedBox(
-                              width: 8,
+                              width: 8.sp,
                             ),
                             Text(
                               'Refresh',
-                              style: AppStyling.regular12Black,
+                              style: AppStyling.regular14Black
+                                  .copyWith(fontSize: 12.sp),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -511,22 +514,23 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     highlightColor: AppColors.darkBlue.withOpacity(0.1),
                     onTap: () {},
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 13.sp, vertical: 0),
                       child: Center(
                         child: Row(
                           children: [
                             Icon(
                               HugeIcons.strokeRoundedAddCircle,
                               color: AppColors.darkBlue,
-                              size: 20,
+                              size: 13.sp,
                             ),
                             SizedBox(
-                              width: 8,
+                              width: 8.sp,
                             ),
                             Text(
                               'New Tab',
-                              style: AppStyling.regular12Black,
+                              style: AppStyling.regular12Black
+                                  .copyWith(fontSize: 12.sp),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -546,17 +550,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     onTap: () {
                       CashInOutWindow.show(context);
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 0, vertical: 0),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Center(
-                          child: Icon(
-                            HugeIcons.strokeRoundedArrowUpDown,
-                            size: 20,
-                            color: AppColors.darkBlue,
-                          ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Center(
+                        child: Icon(
+                          HugeIcons.strokeRoundedArrowUpDown,
+                          size: 13.sp,
+                          color: AppColors.darkBlue,
                         ),
                       ),
                     ),
@@ -564,7 +564,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 ),
                 Spacer(),
                 Container(
-                  padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  padding: EdgeInsets.fromLTRB(10.sp, 5.sp, 10.sp, 5.sp),
                   // Match padding
                   decoration: BoxDecoration(
                     color: AppColors.whiteColor,
@@ -573,14 +573,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   child: Row(
                     children: [
                       SizedBox(
-                        width: 33,
-                        height: 33,
+                        width: 18.sp,
+                        height: 18.sp,
                         child: ClipRRect(
                             borderRadius: BorderRadius.circular(60),
                             child: Image.asset(AppImages.userAvatar)),
                       ),
                       SizedBox(
-                        width: 10,
+                        width: 8.sp,
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,7 +596,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           ),
                           Text(
                             'Cashier',
-                            style: AppStyling.regular10Grey.copyWith(height: 1),
+                            style: AppStyling.regular10Grey.copyWith(height: 1,fontSize: 10.sp),
                           ),
                         ],
                       ),
@@ -607,7 +607,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         child: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: AppColors.darkBlue,
-                          size: 20,
+                          size: 13.sp,
                         ),
                       )
                     ],
@@ -1495,7 +1495,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           AppDialogBox.show(
                             context,
                             title: 'Cancel Sale',
-                            message: 'Are you sure you want to cancel the sale ?',
+                            message:
+                                'Are you sure you want to cancel the sale ?',
                             image: AppImages.failedDialog,
                             negativeButtonText: 'No',
                             negativeButtonTap: () {
@@ -1509,7 +1510,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               });
                             },
                           );
-
                         },
                       ),
                     ),

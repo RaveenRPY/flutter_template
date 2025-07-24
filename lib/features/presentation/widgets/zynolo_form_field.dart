@@ -70,7 +70,7 @@ class _AventaFormFieldState extends State<AventaFormField> {
   late FocusNode _focusNode;
 
   MoneyMaskedTextController? _moneyMaskedTextController;
-  TextStyle _labelStyle = AppStyling.regular12Grey.copyWith(
+  TextStyle _labelStyle = AppStyling.regular14Grey.copyWith(
     color: AppColors.darkGrey,
   );
 
@@ -176,6 +176,8 @@ class _AventaFormFieldState extends State<AventaFormField> {
         ),
         hintStyle: AppStyling.regular12Grey.copyWith(
           color: AppColors.darkGrey,
+          fontSize: 10.px,
+          // height: 1,
         ),
         hintText: widget.hintText,
         contentPadding: EdgeInsets.symmetric(vertical: 1.9.h, horizontal: 2.h),
@@ -210,6 +212,7 @@ class _AventaFormFieldState extends State<AventaFormField> {
             : AppColors.darkGrey.withOpacity(0.05),
         errorStyle: AppStyling.regular10Black.copyWith(
           color: AppColors.errorColor,
+          fontSize: 10.sp
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),

@@ -64,13 +64,15 @@ class _LoginViewState extends BaseViewState<LoginView> {
         child: Scaffold(
           backgroundColor: AppColors.whiteColor,
           body: Padding(
-            padding: const EdgeInsets.all(30),
+            padding: EdgeInsets.all(2.h),
             child: Row(
               children: [
                 Expanded(
                   child: Container(
                     height: double.infinity,
-                    decoration: BoxDecoration(color: AppColors.darkGrey.withOpacity(0.3),borderRadius: BorderRadius.circular(40)),
+                    decoration: BoxDecoration(
+                        color: AppColors.darkGrey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(40)),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(40),
                       child: Image.asset(
@@ -88,158 +90,180 @@ class _LoginViewState extends BaseViewState<LoginView> {
                   child: SizedBox(
                     height: double.infinity,
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "AVENTA",
-                              style: AppStyling.semi35Black.copyWith(
-                                  color: AppColors.primaryColor, fontSize: 55),
-                            ),
-                            Text(
-                              "POS",
-                              style: AppStyling.semi35Black.copyWith(
-                                  color: AppColors.darkBlue, fontSize: 55),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 40,
-                        ),
-                        Text(
-                          "Welcome Back",
-                          style: AppStyling.medium12Black.copyWith(
-                              fontSize: 25, color: AppColors.blackColor),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          "Please enter your details to sign in",
-                          style:
-                              AppStyling.regular12Grey.copyWith(fontSize: 16,color: AppColors.darkGrey.withOpacity(0.7)),
-                        ),
-                        SizedBox(
-                          height: 40,
-                        ),
-                        SizedBox(
-                          width: 30.w,
+                        Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                "Username",
-                                style: AppStyling.medium12Black
-                                    .copyWith(color: AppColors.darkGrey),
-                              ),
-                              SizedBox(height: 10),
-                              Form(
-                                key: _usernameKey,
-                                // autovalidateMode:
-                                //     AutovalidateMode.onUserInteraction,
-                                child: AventaFormField(
-                                  controller: _usernameController,
-                                  hintText: "Enter your Username",
-                                  prefixIcon: Padding(
-                                    padding: const EdgeInsets.only(left: 10,),
-                                    child: Icon(Icons.alternate_email_rounded, size: 23,),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "AVENTA",
+                                    style: AppStyling.semi25Black.copyWith(
+                                        color: AppColors.primaryColor,
+                                        fontSize: 22.sp),
                                   ),
-                                  prefixIconColor: AppColors.primaryColor,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      setState(() {
-                                        isUsernameValidated = false;
-                                      });
-                                      return 'Username can\'t be empty';
-                                    } else {
-                                      setState(() {
-                                        isUsernameValidated = true;
-                                      });
-                                    }
-
-                                    return null;
-                                  },
-                                  onChanged: (value) {
-                                    _usernameKey.currentState?.validate();
-                                  },
-                                ),
-                              ),
-                              SizedBox(height: 20),
-                              Text(
-                                "Password",
-                                style: AppStyling.medium12Black
-                                    .copyWith(color: AppColors.darkGrey),
-                              ),
-                              SizedBox(height: 10),
-                              Form(
-                                key: _passwordKey,
-                                // autovalidateMode:
-                                //     AutovalidateMode.onUserInteraction,
-                                child: AventaFormField(
-                                  controller: _passwordController,
-                                  hintText: "Enter your Password",
-                                  isObsecure: true,
-                                  prefixIcon: Padding(
-                                    padding: const EdgeInsets.only(left: 10,),
-                                    child: Icon(Icons.lock_outline_rounded, size: 23,),
+                                  Text(
+                                    "POS",
+                                    style: AppStyling.semi25Black.copyWith(
+                                        color: AppColors.darkBlue,
+                                        fontSize: 22.sp),
                                   ),
-                                  prefixIconColor: AppColors.primaryColor,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      setState(() {
-                                        isPasswordValidated = false;
-                                      });
-                                      return 'Password can\'t be empty';
-                                    } else {
-                                      setState(() {
-                                        isPasswordValidated = true;
-                                      });
-                                    }
-                                    return null;
-                                  },
-                                  onCompleted: (){
-                                    FocusScope.of(context).unfocus();
-                                    _usernameKey.currentState?.validate();
-                                    _passwordKey.currentState?.validate();
-
-                                    if (isPasswordValidated &&
-                                        isUsernameValidated) {
-                                      _loginBloc.add(CashierLoginEvent(
-                                        username: _usernameController.text.trim(),
-                                        password: _passwordController.text.trim(),
-                                      ));
-                                    }
-                                  },
-                                  onChanged: (value) {
-                                    _passwordKey.currentState?.validate();
-                                  },
-                                ),
+                                ],
                               ),
-                              SizedBox(height: 65),
-                              AppMainButton(
-                                title: "Login",
-                                onTap: () {
-                                  FocusScope.of(context).unfocus();
-                                  _usernameKey.currentState?.validate();
-                                  _passwordKey.currentState?.validate();
+                              SizedBox(
+                                height: 15.sp,
+                              ),
+                              Text(
+                                "Welcome Back",
+                                style: AppStyling.medium12Black.copyWith(
+                                    fontSize: 14.5.sp, color: AppColors.blackColor),
+                              ),
+                              SizedBox(
+                                height: 5.sp,
+                              ),
+                              Text(
+                                "Please enter your details to sign in",
+                                style: AppStyling.regular12Grey.copyWith(
+                                    fontSize: 12.sp,
+                                    color: AppColors.darkGrey.withOpacity(0.7)),
+                              ),
+                              SizedBox(
+                                height: 20.sp,
+                              ),
+                              SizedBox(
+                                width: 30.w,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Username",
+                                      style: AppStyling.medium12Black.copyWith(
+                                          color: AppColors.darkGrey,
+                                          fontSize: 11.sp),
+                                    ),
+                                    SizedBox(height: 8.sp),
+                                    Form(
+                                      key: _usernameKey,
+                                      child: AventaFormField(
+                                        controller: _usernameController,
+                                        hintText: "Enter your Username",
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 10,
+                                          ),
+                                          child: Icon(
+                                            Icons.alternate_email_rounded,
+                                            size: 23,
+                                          ),
+                                        ),
+                                        prefixIconColor: AppColors.primaryColor,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            setState(() {
+                                              isUsernameValidated = false;
+                                            });
+                                            return 'Username can\'t be empty';
+                                          } else {
+                                            setState(() {
+                                              isUsernameValidated = true;
+                                            });
+                                          }
 
-                                  if (isPasswordValidated &&
-                                      isUsernameValidated) {
-                                    _loginBloc.add(CashierLoginEvent(
-                                      username: _usernameController.text.trim(),
-                                      password: _passwordController.text.trim(),
-                                    ));
-                                  }
-                                },
+                                          return null;
+                                        },
+                                        onChanged: (value) {
+                                          _usernameKey.currentState?.validate();
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(height: 14.sp),
+                                    Text(
+                                      "Password",
+                                      style: AppStyling.medium12Black.copyWith(
+                                          color: AppColors.darkGrey,
+                                          fontSize: 11.sp),
+                                    ),
+                                    SizedBox(height: 8.sp),
+                                    Form(
+                                      key: _passwordKey,
+                                      // autovalidateMode:
+                                      //     AutovalidateMode.onUserInteraction,
+                                      child: AventaFormField(
+                                        controller: _passwordController,
+                                        hintText: "Enter your Password",
+                                        isObsecure: true,
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 10,
+                                          ),
+                                          child: Icon(
+                                            Icons.lock_outline_rounded,
+                                            size: 23,
+                                          ),
+                                        ),
+                                        prefixIconColor: AppColors.primaryColor,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            setState(() {
+                                              isPasswordValidated = false;
+                                            });
+                                            return 'Password can\'t be empty';
+                                          } else {
+                                            setState(() {
+                                              isPasswordValidated = true;
+                                            });
+                                          }
+                                          return null;
+                                        },
+                                        onCompleted: () {
+                                          FocusScope.of(context).unfocus();
+                                          _usernameKey.currentState?.validate();
+                                          _passwordKey.currentState?.validate();
+
+                                          if (isPasswordValidated &&
+                                              isUsernameValidated) {
+                                            _loginBloc.add(CashierLoginEvent(
+                                              username:
+                                                  _usernameController.text.trim(),
+                                              password:
+                                                  _passwordController.text.trim(),
+                                            ));
+                                          }
+                                        },
+                                        onChanged: (value) {
+                                          _passwordKey.currentState?.validate();
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(height: 25.sp),
+                                    AppMainButton(
+                                      title: "Login",
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        _usernameKey.currentState?.validate();
+                                        _passwordKey.currentState?.validate();
+
+                                        if (isPasswordValidated &&
+                                            isUsernameValidated) {
+                                          _loginBloc.add(CashierLoginEvent(
+                                            username:
+                                                _usernameController.text.trim(),
+                                            password:
+                                                _passwordController.text.trim(),
+                                          ));
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        SizedBox(
-                          height: 70,
                         ),
                         Text(
                           "© 2025 AventaPOS. All Rights Reserved.",

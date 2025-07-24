@@ -3,6 +3,7 @@ import 'package:AventaPOS/utils/app_images.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sizer/sizer.dart';
 import '../../../../core/services/dependency_injection.dart';
 import '../../bloc/base_bloc.dart';
 import '../../bloc/sale/sale_bloc.dart';
@@ -51,28 +52,31 @@ class _SaleViewState extends BaseViewState<SaleView> {
           selectedTab = state.selectedTabIndex;
         }
 
-        return Row(
-          children: [
-            VerticalNavigationBar(
-              selectedIndex: selectedTab,
-              onItemSelected: (index) {
-                _bloc.add(SaleTabChangedEvent(index));
-              },
-              items: navItems,
-            ),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(color: AppColors.primaryColor),
+        return Scaffold(
+          backgroundColor: AppColors.primaryColor,
+          body: Row(
+            children: [
+              VerticalNavigationBar(
+                selectedIndex: selectedTab,
+                onItemSelected: (index) {
+                  _bloc.add(SaleTabChangedEvent(index));
+                },
+                items: navItems,
+              ),
+              Expanded(
                 child: Container(
-                  margin: EdgeInsets.fromLTRB(0, 15, 15, 15),
-                  decoration: BoxDecoration(
-                      color: AppColors.bgColor,
-                      borderRadius: BorderRadius.circular(30)),
-                  child: _buildTabContent(selectedTab),
+                  decoration: BoxDecoration(color: AppColors.primaryColor),
+                  child: Container(
+                    margin: EdgeInsets.fromLTRB(0, 12.sp, 12.sp, 12.sp),
+                    decoration: BoxDecoration(
+                        color: AppColors.bgColor,
+                        borderRadius: BorderRadius.circular(30)),
+                    child: _buildTabContent(selectedTab),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
