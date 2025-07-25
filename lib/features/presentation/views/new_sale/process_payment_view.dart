@@ -226,8 +226,6 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               changes: change.toString(),
               isRetail: widget.params.isRetail ?? true,
             );
-            // Open cash drawer
-            await PrinterService.instance.openCashDrawer();
 
             ZynoloToast(
               title: state.msg,
@@ -237,6 +235,8 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               animationType: AnimationType.fromTop,
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
+
+
 
             await Future.delayed(Duration(seconds: 2), () {
               setState(() {

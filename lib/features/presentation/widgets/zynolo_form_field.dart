@@ -136,8 +136,8 @@ class _AventaFormFieldState extends State<AventaFormField> {
           widget.isCurrency ? TextInputType.number : widget.textInputType,
       maxLength: widget.maxLength,
       style: widget.isReadOnly!
-          ? AppStyling.regular14Black
-          : AppStyling.medium14Black,
+          ? AppStyling.regular14Black.copyWith(fontSize: 11.5.sp)
+          : AppStyling.medium14Black.copyWith(fontSize: 11.5.sp),
       cursorColor: AppColors.primaryColor,
       cursorErrorColor: AppColors.errorColor,
       obscureText: isPasswordHide,
@@ -178,9 +178,10 @@ class _AventaFormFieldState extends State<AventaFormField> {
         ),
         hintStyle: AppStyling.regular12Grey.copyWith(
           color: AppColors.darkGrey,
-          fontSize: 10.px,
+          fontSize: 10.sp,
           // height: 1,
         ),
+        maintainHintSize: true,
         hintText: widget.hintText,
         contentPadding: EdgeInsets.symmetric(vertical: 1.9.h, horizontal: 2.h),
         labelText: widget.label,

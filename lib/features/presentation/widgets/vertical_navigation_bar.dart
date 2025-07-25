@@ -26,7 +26,7 @@ class VerticalNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 4.w,
+      width: 4.5.w,
       decoration: const BoxDecoration(
         color: AppColors.primaryColor,
       ),

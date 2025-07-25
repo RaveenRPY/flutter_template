@@ -38,6 +38,14 @@ class _LoginViewState extends BaseViewState<LoginView> {
   bool isUsernameValidated = false;
   bool isPasswordValidated = false;
 
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    _focusNode.requestFocus();
+    super.initState();
+  }
+
   @override
   Widget buildView(BuildContext context) {
     return BlocProvider<LoginBloc>(
@@ -47,13 +55,13 @@ class _LoginViewState extends BaseViewState<LoginView> {
           if (state is LoginSuccessState) {
             FocusManager.instance.primaryFocus?.unfocus();
             // Navigator.pushReplacementNamed(context, Routes.kSaleView);
-            if(!(state.isOpening ?? false)){
+            if (!(state.isOpening ?? false)) {
               OpeningBalance.show(context);
             } else {
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 Routes.kSaleView,
-                    (route) => false,
+                (route) => false,
               );
             }
           } else if (state is LoginFailedState) {
@@ -127,7 +135,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
                               Text(
                                 "Welcome Back",
                                 style: AppStyling.medium12Black.copyWith(
-                                    fontSize: 14.5.sp, color: AppColors.blackColor),
+                                    fontSize: 14.5.sp,
+                                    color: AppColors.blackColor),
                               ),
                               SizedBox(
                                 height: 5.sp,
@@ -156,6 +165,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                     Form(
                                       key: _usernameKey,
                                       child: AventaFormField(
+                                        focusNode: _focusNode,
                                         controller: _usernameController,
                                         hintText: "Enter your Username",
                                         prefixIcon: Padding(
@@ -195,7 +205,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                           color: AppColors.darkGrey,
                                           fontSize: 11.sp),
                                     ),
-                                    SizedBox(height: 8.sp),
+                                    SizedBox(height: 7.sp),
                                     Form(
                                       key: _passwordKey,
                                       // autovalidateMode:
@@ -236,10 +246,10 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                           if (isPasswordValidated &&
                                               isUsernameValidated) {
                                             _loginBloc.add(CashierLoginEvent(
-                                              username:
-                                                  _usernameController.text.trim(),
-                                              password:
-                                                  _passwordController.text.trim(),
+                                              username: _usernameController.text
+                                                  .trim(),
+                                              password: _passwordController.text
+                                                  .trim(),
                                             ));
                                           }
                                         },
@@ -248,12 +258,14 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                         },
                                       ),
                                     ),
-                                    SizedBox(height: 25.sp),
+                                    SizedBox(height: 20.sp),
                                     AppMainButton(
                                       title: "Login",
-                                      titleStyle: AppStyling.medium14Black.copyWith(
-                                          color: AppColors.whiteColor,
-                                          fontSize: 11.5.sp, height: 1),
+                                      titleStyle: AppStyling.medium14Black
+                                          .copyWith(
+                                              color: AppColors.whiteColor,
+                                              fontSize: 12.sp,
+                                              height: 1),
                                       onTap: () {
                                         FocusScope.of(context).unfocus();
                                         _usernameKey.currentState?.validate();

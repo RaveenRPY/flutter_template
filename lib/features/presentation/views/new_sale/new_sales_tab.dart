@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:convert';
 import 'dart:io';
 import 'package:AventaPOS/features/presentation/views/home/widgets/cash_in_out.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
@@ -51,6 +52,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   final GlobalKey _searchKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
   final DataGridController _tableController = DataGridController();
+  final FocusNode _productListFocusNode = FocusNode();
+  int _selectedProductIndex = 0;
 
   bool _isRetail = true;
   bool _isCheckOutPage = false;
@@ -351,6 +354,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   @override
   void dispose() {
     _focusNode.dispose();
+    _productListFocusNode.dispose();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -439,11 +443,13 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           filled: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(60),
-                            borderSide: BorderSide(color: AppColors.transparent),
+                            borderSide:
+                                BorderSide(color: AppColors.transparent),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(60),
-                            borderSide: BorderSide(color: AppColors.transparent),
+                            borderSide:
+                                BorderSide(color: AppColors.transparent),
                           ),
                           // Adjusted padding
                           prefixIcon: Padding(
@@ -679,9 +685,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   flex: 5,
                   child: true ? _productSection() : _suggestionSection(),
                 ),
-
                 SizedBox(width: 10.sp),
-
                 // Cart Section
                 Expanded(
                   flex: 3,
@@ -983,148 +987,78 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                'Products',
-                style: AppStyling.medium16Black,
-              ),
-              // Spacer(),
-              // // Fine-tuned modern filter toggle button
-              // GestureDetector(
-              //   onTap: () {
-              //     setState(() {
-              //       _filtersEnabled = !_filtersEnabled;
-              //     });
-              //   },
-              //   child: AnimatedContainer(
-              //     duration: const Duration(milliseconds: 320),
-              //     curve: Curves.easeInOutCubic,
-              //     width: 70,
-              //     height: 36,
-              //     padding:
-              //         const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              //     decoration: BoxDecoration(
-              //       gradient: _filtersEnabled
-              //           ? LinearGradient(
-              //               colors: [
-              //                 AppColors.primaryColor.withOpacity(0.98),
-              //                 AppColors.primaryColor.withOpacity(0.85),
-              //               ],
-              //               begin: Alignment.topLeft,
-              //               end: Alignment.bottomRight,
-              //             )
-              //           : null,
-              //       color: !_filtersEnabled
-              //           ? AppColors.lightGrey.withOpacity(0.8)
-              //           : null,
-              //       borderRadius: BorderRadius.circular(32),
-              //       boxShadow: [
-              //         BoxShadow(
-              //           color: _filtersEnabled
-              //               ? AppColors.primaryColor.withOpacity(0.13)
-              //               : Colors.black.withOpacity(0.06),
-              //           blurRadius: 8,
-              //           offset: Offset(0, 2),
-              //         ),
-              //       ],
-              //       border: Border.all(
-              //         color: _filtersEnabled
-              //             ? AppColors.primaryColor
-              //             : AppColors.darkGrey.withOpacity(0.10),
-              //         width: 1.1,
-              //       ),
-              //     ),
-              //     child: Stack(
-              //       alignment: Alignment.centerLeft,
-              //       children: [
-              //         // Label
-              //         AnimatedPositioned(
-              //           duration: const Duration(milliseconds: 320),
-              //           left: _filtersEnabled ? 18 : 40,
-              //           right: _filtersEnabled ? 48 : 18,
-              //           top: 0,
-              //           bottom: 0,
-              //           child: Align(
-              //             alignment: Alignment.center,
-              //             child: AnimatedOpacity(
-              //               duration: const Duration(milliseconds: 200),
-              //               opacity: 1,
-              //               child: Text(
-              //                 '|',
-              //                 style: AppStyling.regular12Black.copyWith(
-              //                   color: _filtersEnabled
-              //                       ? Colors.white
-              //                       : AppColors.darkGrey,
-              //                   fontWeight: FontWeight.w800,
-              //                   letterSpacing: 0.2,
-              //                 ),
-              //               ),
-              //             ),
-              //           ),
-              //         ),
-              //         // Knob
-              //         AnimatedAlign(
-              //           duration: const Duration(milliseconds: 320),
-              //           curve: Curves.easeInOutCubic,
-              //           alignment: _filtersEnabled
-              //               ? Alignment.centerRight
-              //               : Alignment.centerLeft,
-              //           child: Container(
-              //             width: 28,
-              //             height: 28,
-              //             decoration: BoxDecoration(
-              //               color: Colors.white,
-              //               shape: BoxShape.circle,
-              //               boxShadow: [
-              //                 BoxShadow(
-              //                   color: Colors.black.withOpacity(0.09),
-              //                   blurRadius: 6,
-              //                   offset: Offset(0, 2),
-              //                 ),
-              //               ],
-              //               border: Border.all(
-              //                 color: _filtersEnabled
-              //                     ? AppColors.primaryColor.withOpacity(0.5)
-              //                     : AppColors.lightGrey,
-              //                 width: 1.0,
-              //               ),
-              //             ),
-              //             child: Center(
-              //               child: Icon(
-              //                 Icons.filter_alt_rounded,
-              //                 size: 18,
-              //                 color: _filtersEnabled
-              //                     ? AppColors.primaryColor
-              //                     : AppColors.darkGrey.withOpacity(0.7),
-              //               ),
-              //             ),
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
-              // SizedBox(
-              //   width: 10,
-              // ),
-            ],
+          // Restore Products label container
+          Padding(
+            padding: EdgeInsets.only(bottom: 6.sp, left: 2.sp, right: 2.sp),
+            child: Row(
+              children: [
+                Text(
+                  'Products',
+                  style: AppStyling.medium16Black,
+                ),
+              ],
+            ),
           ),
-          // const SizedBox(height: 20),
+          2.verticalSpace,
+          // Compact header row
+          Container(
+            padding: EdgeInsets.fromLTRB(5.sp,8.sp,5.sp,8.sp),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withOpacity(1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.bgColor.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Padding(
+                    padding:  EdgeInsets.only(left: 13.sp),
+                    child: Text('Item Name', style: AppStyling.semi12Black.copyWith(fontSize: 11.sp, color: AppColors.whiteColor)),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text('Code', style: AppStyling.semi12Black.copyWith(fontSize: 11.sp, color: AppColors.whiteColor), textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text('Label', style: AppStyling.semi12Black.copyWith(fontSize: 11.sp, color: AppColors.whiteColor), textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text('Qty', style: AppStyling.semi12Black.copyWith(fontSize: 11.sp, color: AppColors.whiteColor), textAlign: TextAlign.center),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text('Price', style: AppStyling.semi12Black.copyWith(fontSize: 11.sp, color: AppColors.whiteColor), textAlign: TextAlign.center),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 4.sp),
           Expanded(
             child: _filteredStocks.isNotEmpty
-                ? SfDataGrid(
-                    allowSorting: _filtersEnabled,
-                    allowColumnsResizing: true,
-                    controller: _tableController,
-                    source: StockDataSource(_filteredStocks, _isRetail),
-                    onCellTap: (details) {
-                      if (details.rowColumnIndex.rowIndex > 0) {
-                        final rowIndex = details.rowColumnIndex.rowIndex - 1;
-                        if (rowIndex < _filteredStocks.length) {
-                          final stock = _filteredStocks[rowIndex];
-                          if (_isProductInCart(
-                              stock.item?.code ?? '', stock.labelPrice ?? 0)) {
+                ? RawKeyboardListener(
+                    focusNode: _productListFocusNode,
+                    autofocus: true,
+                    onKey: (event) {
+                      if (event is RawKeyDownEvent) {
+                        if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                          setState(() {
+                            if (_selectedProductIndex < _filteredStocks.length - 1) {
+                              _selectedProductIndex++;
+                            }
+                          });
+                        } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                          setState(() {
+                            if (_selectedProductIndex > 0) {
+                              _selectedProductIndex--;
+                            }
+                          });
+                        } else if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+                          final stock = _filteredStocks[_selectedProductIndex];
+                          if (_isProductInCart(stock.item?.code ?? '', stock.labelPrice ?? 0)) {
                             _showDuplicateItemToast();
                           } else {
                             PopupWindow.show(
@@ -1133,9 +1067,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               itemCode: stock.item?.code,
                               itemName: stock.item?.description,
                               labelPrice: stock.labelPrice,
-                              salePrice: _isRetail
-                                  ? stock.retailPrice
-                                  : stock.wholesalePrice,
+                              salePrice: _isRetail ? stock.retailPrice : stock.wholesalePrice,
                               stockQty: stock.qty,
                               cost: stock.itemCost,
                               onAddToCart: addProductToCart,
@@ -1144,109 +1076,43 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         }
                       }
                     },
-                    columns: [
-                      GridColumn(
-                        columnName: 'name',
-                        width: 17.w,
-                        // Set a wider width for item names
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.transparent,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              bottomLeft: Radius.circular(12),
-                            ),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 15.sp, vertical: 0.sp),
-                          child: Text(
-                            'Item Name',
-                            style: AppStyling.regular12Grey
-                                .copyWith(fontSize: 11.sp),
-                          ),
-                        ),
-                      ),
-                      GridColumn(
-                        columnName: 'code',
-                        width: 12.w,
-                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
-                        autoFitPadding: EdgeInsets.zero,
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.transparent,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Code',
-                            style: AppStyling.regular12Grey
-                                .copyWith(fontSize: 11.sp),
-                          ),
-                        ),
-                      ),
-                      GridColumn(
-                        columnName: 'labelPrice',
-                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.transparent,
-                          ),
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 5.sp, vertical: 0.sp),
-                          child: Text(
-                            'Label Price',
-                            style: AppStyling.regular12Grey
-                                .copyWith(fontSize: 11.sp),
-                          ),
-                        ),
-                      ),
-                      GridColumn(
-                        columnName: 'qty',
-                        width: 7.w,
-                        columnWidthMode: ColumnWidthMode.fitByCellValue,
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.transparent,
-                          ),
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 5.sp, vertical: 0.sp),
-                          child: Text(
-                            'QTY',
-                            style: AppStyling.regular12Grey
-                                .copyWith(fontSize: 11.sp),
-                          ),
-                        ),
-                      ),
-                      GridColumn(
-                        columnName: 'salePrice',
-                        // width: 10.w,
-                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
-                        label: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.transparent,
-                            borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.only(right: 5.sp),
-                          child: Text(
-                            _isRetail ? 'Sale Price' : 'Wholesale Price',
-                            textAlign: TextAlign.center,
-                            style: AppStyling.regular12Grey
-                                .copyWith(fontSize: 11.sp),
-                          ),
-                        ),
-                      ),
-                    ],
-                    // headerRowHeight: 50,
-                    rowHeight: 4.h,
-                    gridLinesVisibility: GridLinesVisibility.horizontal,
-                    headerGridLinesVisibility: GridLinesVisibility.horizontal,
-                    columnWidthMode: ColumnWidthMode.fill,
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(top: 8.sp),
+                      itemCount: _filteredStocks.length,
+                      separatorBuilder: (context, index) => Divider(height: 5, thickness: 4, color: AppColors.whiteColor),
+                      itemBuilder: (context, index) {
+                        final stock = _filteredStocks[index];
+                        final isLowQty = (stock.qty ?? 0) < 10;
+                        final isSelected = index == _selectedProductIndex;
+                        return _ProductListItem(
+                          stock: stock,
+                          isSelected: isSelected,
+                          isLowQty: isLowQty,
+                          onTap: () {
+                            if (_isProductInCart(stock.item?.code ?? '', stock.labelPrice ?? 0)) {
+                              _showDuplicateItemToast();
+                            } else {
+                              PopupWindow.show(
+                                context,
+                                stock: stock,
+                                itemCode: stock.item?.code,
+                                itemName: stock.item?.description,
+                                labelPrice: stock.labelPrice,
+                                salePrice: _isRetail ? stock.retailPrice : stock.wholesalePrice,
+                                stockQty: stock.qty,
+                                cost: stock.itemCost,
+                                onAddToCart: addProductToCart,
+                              );
+                            }
+                          },
+                          onHover: () {
+                            setState(() {
+                              _selectedProductIndex = index;
+                            });
+                          },
+                        );
+                      },
+                    ),
                   )
                 : Center(
                     child: Column(
@@ -1254,20 +1120,20 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       children: [
                         Icon(
                           HugeIcons.strokeRoundedFileEmpty01,
-                          size: 100,
+                          size: 25.sp,
                           color: AppColors.darkGrey.withOpacity(0.3),
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: 10.sp),
                         Text(
                           'No any Items',
-                          style: AppStyling.medium16Black.copyWith(
+                          style: AppStyling.medium14Black.copyWith(
                             color: AppColors.darkGrey.withOpacity(0.5),
                           ),
                         ),
-                        SizedBox(height: 8),
+                        SizedBox(height: 4.sp),
                         Text(
                           'Add products to your shop',
-                          style: AppStyling.regular14Grey.copyWith(
+                          style: AppStyling.regular12Grey.copyWith(
                             color: AppColors.darkGrey.withOpacity(0.4),
                           ),
                         ),
@@ -1424,7 +1290,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                                 color: AppColors.darkGrey.withOpacity(0.5),
                               ),
                             ),
-                            SizedBox(height: 5.sp),
+                            SizedBox(height: 4.sp),
                             Text(
                               'Add products to your cart',
                               style: AppStyling.regular12Grey.copyWith(
@@ -1507,31 +1373,40 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
             ),
             child: Column(
               children: [
-                Container(
-                  // height: 400,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 13.sp, vertical: 12.sp),
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Sub Total',
-                          style: AppStyling.medium12Black
-                              .copyWith(fontSize: 11.sp),
-                        ),
-                        Text(
-                          _formatCurrency(_calculateCartTotal()),
-                          style: AppStyling.semi14Black,
-                        ),
-                      ],
+                DottedBorder(
+                  options: RoundedRectDottedBorderOptions(
+                      color: AppColors.primaryColor.withOpacity(0.9),
+                      radius: Radius.circular(22),
+                      dashPattern: [5,3],
+                      strokeWidth: 2,
+                      borderPadding: EdgeInsets.zero),
+                  child: Container(
+                    // height: 400,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 13.sp, vertical: 12.sp),
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20)),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Sub Total',
+                            style: AppStyling.medium12Black
+                                .copyWith(fontSize: 11.sp, height: 1),
+                          ),
+                          Text(
+                            _formatCurrency(_calculateCartTotal()),
+                            style: AppStyling.semi14Black
+                                .copyWith(height: 1, fontSize: 13.sp),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(height: 7.sp),
+                SizedBox(height: 9.sp),
                 Row(
                   children: [
                     Expanded(
@@ -1548,7 +1423,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         title: 'Customer',
                         titleStyle: AppStyling.medium14Black.copyWith(
                             color: AppColors.darkBlue,
-                            fontSize: 11.5.sp,
+                            fontSize: 12.sp,
                             height: 1),
                         onTap: () {},
                       ),
@@ -1567,7 +1442,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         color: AppColors.red.withOpacity(0.15),
                         title: 'Cancel Sale',
                         titleStyle: AppStyling.medium14Black.copyWith(
-                            color: AppColors.red, fontSize: 11.5.sp, height: 1),
+                            color: AppColors.red, fontSize: 12.sp, height: 1),
                         onTap: () {
                           AppDialogBox.show(
                             context,
@@ -1600,9 +1475,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   ),
                   title: 'Checkout',
                   titleStyle: AppStyling.medium12Black.copyWith(
-                      color: AppColors.whiteColor,
-                      fontSize: 11.5.sp,
-                      height: 1),
+                      color: AppColors.whiteColor, fontSize: 12.sp, height: 1),
                   onTap: () async {
                     if (_cartItems.isNotEmpty) {
                       setState(() {
@@ -1951,4 +1824,161 @@ Widget _buildReceiptRow(String leftText, String rightText,
       ],
     ),
   );
+}
+
+class _ProductListItem extends StatelessWidget {
+  final Stock stock;
+  final bool isSelected;
+  final bool isLowQty;
+  final VoidCallback? onTap;
+  final VoidCallback? onHover;
+  const _ProductListItem({
+    Key? key,
+    required this.stock,
+    required this.isSelected,
+    required this.isLowQty,
+    this.onTap,
+    this.onHover,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Color leftBarColor = Colors.transparent;
+    if (isSelected) {
+      leftBarColor = AppColors.primaryColor;
+    } else if (isLowQty) {
+      leftBarColor = AppColors.red;
+    }
+    Color? bgColor;
+    if (isLowQty) {
+      bgColor = AppColors.red.withOpacity(0.15);
+    } else {
+      bgColor = AppColors.primaryColor.withOpacity(0.09);
+    }
+    return MouseRegion(
+      onEnter: (_) => onHover?.call(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: bgColor,
+          border: Border(left: BorderSide(color: leftBarColor, width: 3,)),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected
+              ? [BoxShadow(color: AppColors.primaryColor.withOpacity(0.10), blurRadius: 8, offset: Offset(0, 2))]
+              : [],
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(50),
+          highlightColor: AppColors.darkBlue,
+          splashColor: AppColors.darkBlue.withOpacity(0.9),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 9.5.sp),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Left accent bar
+                // Container(
+                //   width: 6.sp,
+                //   height: 16.sp,
+                //   decoration: BoxDecoration(
+                //     color: leftBarColor,
+                //     borderRadius: BorderRadius.horizontal(left: Radius.circular(50)),
+                //   ),
+                // ),
+                // Name cell
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(60),
+                        bottomLeft: Radius.circular(60),
+                      ),
+                      color: Colors.transparent,
+                    ),
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(left: 13.sp),
+                    child: Text(
+                      stock.item?.description ?? '',
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyling.medium12Black.copyWith(fontSize: 11.sp,height: 1),
+                    ),
+                  ),
+                ),
+                // Code cell
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    alignment: Alignment.center,
+                    color: Colors.transparent,
+                    child: Text(
+                      stock.item?.code ?? '',
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyling.medium12Black.copyWith(fontSize: 11.sp,height: 1),
+                    ),
+                  ),
+                ),
+                // Label Price cell
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    alignment: Alignment.center,
+                    color: Colors.transparent,
+                    padding: EdgeInsets.symmetric(horizontal: 5.sp),
+                    child: Text(
+                      NumberFormat.currency(locale: 'en_US', symbol: '', decimalDigits: 2).format(stock.labelPrice ?? 0),
+                      style: AppStyling.medium12Black.copyWith(fontSize: 11.sp,height: 1),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                // QTY cell
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    alignment: Alignment.center,
+                    color: Colors.transparent,
+                    padding: EdgeInsets.symmetric(horizontal: 5.sp),
+                    child: Text(
+                      (stock.qty ?? 0).toString(),
+                      style: AppStyling.semi12Black.copyWith(
+                        color: isLowQty ? AppColors.red : CupertinoColors.activeBlue,
+                        fontSize: 11.sp,
+                        height: 1
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                // Retail Price cell (last cell)
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(60),
+                        bottomRight: Radius.circular(60),
+                      ),
+                      color: Colors.transparent,
+                    ),
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.only(right: 5.sp),
+                    child: Text(
+                      NumberFormat.currency(locale: 'en_US', symbol: '', decimalDigits: 2).format(stock.retailPrice ?? 0),
+                      overflow: TextOverflow.ellipsis,
+                      style: AppStyling.medium12Black.copyWith(color: Color(0xff1a932f), fontSize: 11.sp,height: 1),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

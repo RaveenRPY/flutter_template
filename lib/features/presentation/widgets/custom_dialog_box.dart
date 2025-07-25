@@ -79,7 +79,7 @@ class CustomDialogBox extends StatelessWidget {
                               color: AppColors.darkGrey.withOpacity(0.15),
                               titleStyle: AppStyling.medium14Black.copyWith(
                                   color: AppColors.darkGrey,
-                                  fontSize: 11.5.sp, height: 1),
+                                  fontSize: 12.sp, height: 1),
                               onTap: () {
                                 FocusScope.of(context).unfocus();
                                 Navigator.pop(context);
@@ -93,7 +93,7 @@ class CustomDialogBox extends StatelessWidget {
                             title: positiveButtonText ?? 'Done',
                             titleStyle: AppStyling.medium14Black.copyWith(
                                 color: AppColors.whiteColor,
-                                fontSize: 11.5.sp, height: 1),
+                                fontSize: 12.sp, height: 1),
                             onTap: () {
                               FocusScope.of(context).unfocus();
                               Navigator.pop(context);

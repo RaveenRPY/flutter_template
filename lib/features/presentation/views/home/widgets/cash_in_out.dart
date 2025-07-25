@@ -381,7 +381,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                   color: AppColors.darkGrey.withOpacity(0.15),
                                   titleStyle: AppStyling.medium14Black.copyWith(
                                       color: AppColors.darkBlue,
-                                      fontSize: 11.5.sp,
+                                      fontSize: 12.sp,
                                       height: 1),
                                   onTap: () {
                                     if (_isLoadingCashInOut) {
@@ -408,7 +408,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                   title: "Save",
                                   titleStyle: AppStyling.medium14Black.copyWith(
                                       color: AppColors.whiteColor,
-                                      fontSize: 11.5.sp,
+                                      fontSize: 12.sp,
                                       height: 1),
                                   prefixIcon: _isLoadingCashInOut
                                       ? Padding(

@@ -429,7 +429,7 @@ class _PopupWindowState extends State<PopupWindow> {
                           color: AppColors.darkGrey.withOpacity(0.15),
                           titleStyle: AppStyling.medium14Black.copyWith(
                               color: AppColors.darkGrey,
-                              fontSize: 11.5.sp, height: 1),
+                              fontSize: 12.sp, height: 1),
                         ),
                       ),
                       SizedBox(width: 10),
@@ -438,7 +438,7 @@ class _PopupWindowState extends State<PopupWindow> {
                           title: widget.isForEdit! ? "Save" : "Add to Cart",
                           titleStyle: AppStyling.medium14Black.copyWith(
                               color: AppColors.whiteColor,
-                              fontSize: 11.5.sp, height: 1),
+                              fontSize: 12.sp, height: 1),
                           isEnable: (isQtyValidated &&
                               isCustomSalePriceValidated &&
                               _qty > 0),

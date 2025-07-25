@@ -226,7 +226,7 @@ class _PopupWindowState extends BaseViewState<OpeningBalance> {
                             title: "Continue",
                             titleStyle: AppStyling.medium14Black.copyWith(
                                 color: AppColors.whiteColor,
-                                fontSize: 11.5.sp, height: 1),
+                                fontSize: 12.sp, height: 1),
                             prefixIcon: _isLoading
                                 ? Padding(
                                     padding: EdgeInsets.only(right: 5),
