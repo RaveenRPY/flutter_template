@@ -47,7 +47,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
           if (state is LoginSuccessState) {
             FocusManager.instance.primaryFocus?.unfocus();
             // Navigator.pushReplacementNamed(context, Routes.kSaleView);
-            if(state.isOpening ?? false){
+            if(!(state.isOpening ?? false)){
               OpeningBalance.show(context);
             } else {
               Navigator.pushNamedAndRemoveUntil(

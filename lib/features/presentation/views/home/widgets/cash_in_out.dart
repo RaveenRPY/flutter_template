@@ -122,8 +122,6 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                   )
                   .toList();
             });
-            // Open cash drawer
-            await PrinterService.instance.openCashDrawer();
           } else if (state is ViewTodayCashInOutFailedState) {
             FocusManager.instance.primaryFocus?.unfocus();
             setState(() {
@@ -146,6 +144,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
             setState(() {
               _isLoadingCashInOut = false;
             });
+
             ZynoloToast(
               title: state.msg,
               toastType: Toast.success,
@@ -155,6 +154,8 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
             Navigator.pop(context);
+            // Open cash drawer
+            await PrinterService.instance.openCashDrawer();
           } else if (state is CashInOutFailedState) {
             setState(() {
               _isLoadingCashInOut = false;
@@ -178,7 +179,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
             child: Center(
               child: Container(
                 width: 45.w,
-                constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
+                constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 95.h),
                 decoration: BoxDecoration(
                     color: AppColors.whiteColor,
                     borderRadius: BorderRadius.circular(30),
@@ -447,6 +448,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                             color: AppColors.darkGrey.withOpacity(0.1),
                           ),
                           SizedBox(height: 20),
+                          // History Table (refactored for scrollable rows with full border)
                           Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
@@ -456,14 +458,14 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                 )),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(15),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
+                              child: SizedBox(
+                                height: 20.h, // Set your desired height here
+                                child: Column(
+                                  children: [
+                                    // Header row
+                                    Container(
                                       color: AppColors.primaryColor
                                           .withOpacity(0.4),
-                                    ),
-                                    child: Padding(
                                       padding: const EdgeInsets.all(12.0),
                                       child: Row(
                                         children: [
@@ -494,87 +496,70 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                         ],
                                       ),
                                     ),
-                                  ),
-                                  if (!_isLoadingHistory)
-                                    if (_cashMode == CashMode.inCash
-                                        ? _cashInHistory!.isNotEmpty
-                                        : _cashOutHistory!.isNotEmpty)
-                                      ListView.builder(
-                                        itemCount: _cashMode == CashMode.inCash
-                                            ? _cashInHistory?.length
-                                            : _cashOutHistory?.length,
-                                        shrinkWrap: true,
-                                        itemBuilder: (context, index) {
-                                          Cash item =
-                                              _cashMode == CashMode.inCash
-                                                  ? _cashInHistory![index]
-                                                  : _cashOutHistory![index];
-                                          return CashInOutRecord(
-                                            date: item.date ?? DateTime.now(),
-                                            remark: item.remark ?? "N/A",
-                                            amount: item.amount ?? 0,
-                                            isLast: (_cashMode ==
-                                                            CashMode.inCash
-                                                        ? _cashInHistory
-                                                        : _cashOutHistory)
-                                                    ?.last ==
-                                                (_cashMode == CashMode.inCash
-                                                    ? _cashInHistory![index]
-                                                    : _cashOutHistory![index]),
-                                          );
-                                        },
-                                      )
-                                    else
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: AppColors.darkGrey
-                                              .withOpacity(0.0),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                "No cash in/out records for today",
-                                                style: AppStyling.regular12Grey,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                  else
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color:
-                                            AppColors.darkGrey.withOpacity(0.0),
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: AppColors.primaryColor
-                                                .withOpacity(0.4),
-                                          ),
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            SizedBox(
-                                              width: 20,
-                                              height: 20,
+                                    // Scrollable rows
+                                    Expanded(
+                                      child: _isLoadingHistory
+                                          ? Center(
                                               child: CircularProgressIndicator(
                                                 color: AppColors.primaryColor,
                                                 strokeWidth: 3,
                                               ),
                                             )
-                                          ],
-                                        ),
-                                      ),
+                                          : (_cashMode == CashMode.inCash
+                                                  ? _cashInHistory!.isNotEmpty
+                                                  : _cashOutHistory!.isNotEmpty)
+                                              ? ListView.builder(
+                                                  shrinkWrap: true,
+                                                  physics:
+                                                      ClampingScrollPhysics(),
+                                                  itemCount: _cashMode ==
+                                                          CashMode.inCash
+                                                      ? _cashInHistory?.length
+                                                      : _cashOutHistory?.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    Cash item = _cashMode ==
+                                                            CashMode.inCash
+                                                        ? _cashInHistory![index]
+                                                        : _cashOutHistory![
+                                                            index];
+                                                    return CashInOutRecord(
+                                                      date: item.date ??
+                                                          DateTime.now(),
+                                                      remark:
+                                                          item.remark ?? "N/A",
+                                                      amount: item.amount ?? 0,
+                                                      isLast: (_cashMode ==
+                                                                      CashMode
+                                                                          .inCash
+                                                                  ? _cashInHistory
+                                                                  : _cashOutHistory)
+                                                              ?.last ==
+                                                          (_cashMode ==
+                                                                  CashMode
+                                                                      .inCash
+                                                              ? _cashInHistory![
+                                                                  index]
+                                                              : _cashOutHistory![
+                                                                  index]),
+                                                    );
+                                                  },
+                                                )
+                                              : Center(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            12.0),
+                                                    child: Text(
+                                                      "No cash in/out records for today",
+                                                      style: AppStyling
+                                                          .regular12Grey,
+                                                    ),
+                                                  ),
+                                                ),
                                     ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),

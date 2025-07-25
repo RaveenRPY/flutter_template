@@ -155,7 +155,7 @@ class _PopupWindowState extends BaseViewState<OpeningBalance> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(top: 10.sp),
+                            padding: EdgeInsets.only(top: 9.sp),
                             child: Text(
                               "Add opening balance to : ${AppConstants.profileData?.username} @ ${AppConstants.profileData?.location?.description}",
                               style: AppStyling.regular14Black,
@@ -163,7 +163,7 @@ class _PopupWindowState extends BaseViewState<OpeningBalance> {
                             ),
                           ),
 
-                          SizedBox(height: 40),
+                          SizedBox(height: 20.sp),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -219,7 +219,7 @@ class _PopupWindowState extends BaseViewState<OpeningBalance> {
                             ],
                           ),
 
-                          SizedBox(height: 30),
+                          SizedBox(height: 20.sp),
 
                           // Action Buttons
                           AppMainButton(
