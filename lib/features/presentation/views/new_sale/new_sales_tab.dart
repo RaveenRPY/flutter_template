@@ -51,7 +51,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   final GlobalKey _searchKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
   final DataGridController _tableController = DataGridController();
-  final FocusNode _globalFocusNode = FocusNode();
 
   bool _isRetail = true;
   bool _isCheckOutPage = false;
@@ -351,7 +350,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   void dispose() {
-    _globalFocusNode.dispose();
     _focusNode.dispose();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
@@ -360,60 +358,50 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   Widget buildView(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: _globalFocusNode,
-      autofocus: true,
-      onKey: (event) {
-        if (event is RawKeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.f2) {
-          _focusNode.requestFocus();
-        }
-      },
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider<StockBloc>(create: (context) => _stockBloc),
-          BlocProvider<SaleBloc>(create: (context) => _salesBloc),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<StockBloc>(create: (context) => _stockBloc),
+        BlocProvider<SaleBloc>(create: (context) => _salesBloc),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<StockBloc, BaseState<StockState>>(
+              listener: (context, state) {
+            if (state is GetStockSuccessState) {
+              setState(() {
+                AppConstants.stockList = state.stockList;
+                _allStocks = _filteredStocks = state.stockList ?? [];
+              });
+            } else if (state is GetStockFailedState) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              AppDialogBox.show(
+                context,
+                title: 'Oops..!',
+                message: state.errorMsg,
+                image: AppImages.failedDialog,
+                isTwoButton: false,
+                positiveButtonTap: () {},
+                positiveButtonText: 'Try Again',
+              );
+            }
+          }),
         ],
-        child: MultiBlocListener(
-          listeners: [
-            BlocListener<StockBloc, BaseState<StockState>>(
-                listener: (context, state) {
-              if (state is GetStockSuccessState) {
-                setState(() {
-                  AppConstants.stockList = state.stockList;
-                  _allStocks = _filteredStocks = state.stockList ?? [];
-                });
-              } else if (state is GetStockFailedState) {
-                FocusManager.instance.primaryFocus?.unfocus();
-                AppDialogBox.show(
-                  context,
-                  title: 'Oops..!',
-                  message: state.errorMsg,
-                  image: AppImages.failedDialog,
-                  isTwoButton: false,
-                  positiveButtonTap: () {},
-                  positiveButtonText: 'Try Again',
-                );
-              }
-            }),
-          ],
-          child: !_isCheckOutPage
-              ? _buildSalesContent(context)
-              : ProcessPaymentView(
-                  params: PaymentParams(
-                      cartItemList: _cartItems,
-                      total: _calculateCartTotal(),
-                      isRetail: _isRetail,
-                      onPop: (bool? isNew) {
-                        setState(() {
-                          _isCheckOutPage = false;
-                          if (isNew ?? false) {
-                            _cartItems.clear();
-                            _searchController.clear();
-                          }
-                        });
-                      })),
-        ),
+        child: !_isCheckOutPage
+            ? _buildSalesContent(context)
+            : ProcessPaymentView(
+                params: PaymentParams(
+                    cartItemList: _cartItems,
+                    total: _calculateCartTotal(),
+                    isRetail: _isRetail,
+                    onPop: (bool? isNew) {
+                      setState(() {
+                        _isCheckOutPage = false;
+                        if (isNew ?? false) {
+                          _cartItems.clear();
+                          _searchController.clear();
+                        }
+                      });
+                    })),
       ),
     );
   }
