@@ -485,7 +485,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                         positiveButtonText: 'Yes',
                                         positiveButtonTap: () {
                                           setState(() {
-                                            widget.params.onPop!();
+                                            widget.params.onPop!(true);
                                           });
                                         },
                                       );

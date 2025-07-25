@@ -24,5 +24,8 @@ class AppConstants {
   static void clearAllUserData() {
     accessToken = null;
     IS_USER_LOGGED = false;
+    stockList = null;
+    profileData = LoginResponse();
+    username = null;
   }
 }

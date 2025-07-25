@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:AventaPOS/features/presentation/views/home/widgets/cash_in_out.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import 'package:AventaPOS/features/presentation/bloc/base_bloc.dart';
 import 'package:AventaPOS/features/presentation/bloc/stock/stock_bloc.dart';
@@ -50,6 +51,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
   final GlobalKey _searchKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
   final DataGridController _tableController = DataGridController();
+  final FocusNode _globalFocusNode = FocusNode();
 
   bool _isRetail = true;
   bool _isCheckOutPage = false;
@@ -349,6 +351,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   void dispose() {
+    _globalFocusNode.dispose();
     _focusNode.dispose();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
@@ -357,50 +360,60 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   @override
   Widget buildView(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<StockBloc>(create: (context) => _stockBloc),
-        BlocProvider<SaleBloc>(create: (context) => _salesBloc),
-      ],
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<StockBloc, BaseState<StockState>>(
-              listener: (context, state) {
-            if (state is GetStockSuccessState) {
-              setState(() {
-                AppConstants.stockList = state.stockList;
-                _allStocks = _filteredStocks = state.stockList ?? [];
-              });
-            } else if (state is GetStockFailedState) {
-              FocusManager.instance.primaryFocus?.unfocus();
-              AppDialogBox.show(
-                context,
-                title: 'Oops..!',
-                message: state.errorMsg,
-                image: AppImages.failedDialog,
-                isTwoButton: false,
-                positiveButtonTap: () {},
-                positiveButtonText: 'Try Again',
-              );
-            }
-          }),
+    return RawKeyboardListener(
+      focusNode: _globalFocusNode,
+      autofocus: true,
+      onKey: (event) {
+        if (event is RawKeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.f2) {
+          _focusNode.requestFocus();
+        }
+      },
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<StockBloc>(create: (context) => _stockBloc),
+          BlocProvider<SaleBloc>(create: (context) => _salesBloc),
         ],
-        child: !_isCheckOutPage
-            ? _buildSalesContent(context)
-            : ProcessPaymentView(
-                params: PaymentParams(
-                    cartItemList: _cartItems,
-                    total: _calculateCartTotal(),
-                    isRetail: _isRetail,
-                    onPop: (bool? isNew) {
-                      setState(() {
-                        _isCheckOutPage = false;
-                        if (isNew ?? false) {
-                          _cartItems.clear();
-                          _searchController.clear();
-                        }
-                      });
-                    })),
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<StockBloc, BaseState<StockState>>(
+                listener: (context, state) {
+              if (state is GetStockSuccessState) {
+                setState(() {
+                  AppConstants.stockList = state.stockList;
+                  _allStocks = _filteredStocks = state.stockList ?? [];
+                });
+              } else if (state is GetStockFailedState) {
+                FocusManager.instance.primaryFocus?.unfocus();
+                AppDialogBox.show(
+                  context,
+                  title: 'Oops..!',
+                  message: state.errorMsg,
+                  image: AppImages.failedDialog,
+                  isTwoButton: false,
+                  positiveButtonTap: () {},
+                  positiveButtonText: 'Try Again',
+                );
+              }
+            }),
+          ],
+          child: !_isCheckOutPage
+              ? _buildSalesContent(context)
+              : ProcessPaymentView(
+                  params: PaymentParams(
+                      cartItemList: _cartItems,
+                      total: _calculateCartTotal(),
+                      isRetail: _isRetail,
+                      onPop: (bool? isNew) {
+                        setState(() {
+                          _isCheckOutPage = false;
+                          if (isNew ?? false) {
+                            _cartItems.clear();
+                            _searchController.clear();
+                          }
+                        });
+                      })),
+        ),
       ),
     );
   }
@@ -421,59 +434,69 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
               children: [
                 SizedBox(
                   width: 20.w,
-                  child: Form(
-                    key: _searchKey,
-                    child: TextFormField(
-                      focusNode: _focusNode,
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        fillColor: AppColors.whiteColor,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(60),
-                          borderSide: BorderSide(color: AppColors.transparent),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(60),
-                          borderSide: BorderSide(color: AppColors.transparent),
-                        ),
-                        // Adjusted padding
-                        prefixIcon: Padding(
-                          padding: EdgeInsets.only(left: 7.sp ),
-                          child: Icon(
-                            HugeIcons.strokeRoundedSearch01,
-                            size: 13.sp,
-                            color: AppColors.darkGrey.withOpacity(0.3),
+                  child: RawKeyboardListener(
+                    focusNode: _focusNode,
+                    onKey: (event) {
+                      if (event is RawKeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.escape) {
+                        _searchController.clear();
+                      }
+                    },
+                    child: Form(
+                      key: _searchKey,
+                      child: TextFormField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          fillColor: AppColors.whiteColor,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(60),
+                            borderSide: BorderSide(color: AppColors.transparent),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(60),
+                            borderSide: BorderSide(color: AppColors.transparent),
+                          ),
+                          // Adjusted padding
+                          prefixIcon: Padding(
+                            padding: EdgeInsets.only(left: 7.sp),
+                            child: Icon(
+                              HugeIcons.strokeRoundedSearch01,
+                              size: 13.sp,
+                              color: AppColors.darkGrey.withOpacity(0.3),
+                            ),
+                          ),
+                          suffixIcon: _searchController.text != ""
+                              ? Padding(
+                                  padding: EdgeInsets.only(right: 5),
+                                  child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.cancel_outlined,
+                                        color:
+                                            AppColors.darkGrey.withOpacity(0.3),
+                                        size: 13.sp,
+                                      )),
+                                )
+                              : null,
+                          hintText: "Search here for product (F2)",
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 11.sp),
+                          hintStyle: AppStyling.regular12Grey.copyWith(
+                              color: AppColors.darkGrey.withOpacity(0.5),
+                              height: 1,
+                              fontSize: 10.sp),
+                          // contentPadding: EdgeInsets.zero
                         ),
-                        suffixIcon: Padding(
-                          padding: EdgeInsets.only(right: 5),
-                          child: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                });
-                              },
-                              icon: Icon(
-                                Icons.cancel_outlined,
-                                color: AppColors.darkGrey.withOpacity(0.3),
-                                size: 13.sp,
-                              )),
-                        ),
-                        hintText: "Search here for product",
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 11.sp),
-                        hintStyle: AppStyling.regular12Grey.copyWith(
-                            color: AppColors.darkGrey.withOpacity(0.5),
-                            height: 1,
-                            fontSize: 10.sp),
-                        // contentPadding: EdgeInsets.zero
+                        style: AppStyling.medium14Black,
+                        onChanged: (value) {
+                          setState(() {});
+                        },
                       ),
-                      style: AppStyling.medium14Black,
-                      onChanged: (value) {
-                        log(_searchController.text);
-                        setState(() {});
-                      },
                     ),
                   ),
                 ),
@@ -629,8 +652,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         children: [
                           Text(
                             AppConstants.username ?? "User",
-                            style:
-                                AppStyling.regular14Black.copyWith(height: 1),
+                            style: AppStyling.medium14Black
+                                .copyWith(height: 1, fontSize: 10.5.sp),
                           ),
                           SizedBox(
                             height: 4,
@@ -638,7 +661,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           Text(
                             'Cashier',
                             style: AppStyling.regular10Grey
-                                .copyWith(height: 1, fontSize: 10.sp),
+                                .copyWith(height: 1, fontSize: 9.5.sp),
                           ),
                         ],
                       ),
@@ -651,7 +674,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           color: AppColors.darkBlue,
                           size: 13.sp,
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),

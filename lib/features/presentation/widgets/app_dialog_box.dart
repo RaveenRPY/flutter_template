@@ -44,7 +44,7 @@ class AppDialogBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           child: Container(
             width: 48.h,
-            constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 70.h),
+            constraints: BoxConstraints(maxWidth: 60.w, maxHeight: 70.h),
             child: Wrap(
               children: [
                 Padding(
