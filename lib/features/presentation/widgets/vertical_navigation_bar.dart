@@ -26,7 +26,7 @@ class VerticalNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 5.w,
+      width: 4.w,
       decoration: const BoxDecoration(
         color: AppColors.primaryColor,
       ),
@@ -93,14 +93,14 @@ class VerticalNavigationBar extends StatelessWidget {
                     },
                     borderRadius: BorderRadius.circular(90),
                     child: Container(
-                      width: 4.w,
-                      height: 4.w,
+                      width: 3.w,
+                      height: 3.w,
                       padding: EdgeInsets.all(0),
                       decoration: BoxDecoration(
                           color: AppColors.whiteColor.withOpacity(0.2),
                           shape: BoxShape.circle),
                       child:
-                          Icon(size: 15.sp, Icons.logout, color: AppColors.red),
+                          Icon(size: 13.sp, Icons.logout, color: AppColors.red),
                     ),
                   ),
                 ),
@@ -152,7 +152,7 @@ class _NavigationItem extends StatelessWidget {
                 // HugeIcons.strokeRoundedReturnRequest,
                 // HugeIcons.strokeRoundedReturnRequest,
                 item.icon,
-                size: 15.sp,
+                size: 13.sp,
                 color: isSelected
                     ? AppColors.darkBlue
                     : AppColors.whiteColor.withOpacity(0.7),

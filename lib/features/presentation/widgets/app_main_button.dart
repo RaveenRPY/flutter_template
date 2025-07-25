@@ -106,9 +106,9 @@ class _AppMainButtonState extends State<AppMainButton> {
                 style:
                     !widget.isNegative!
                         ? widget.isEnable!
-                            ? widget.titleStyle ?? AppStyling.medium14White
-                            : AppStyling.medium14White
-                        : widget.titleStyle ?? AppStyling.medium14Black,
+                            ? widget.titleStyle ?? AppStyling.medium14White.copyWith(fontSize: 11.5.sp, height: 1)
+                            : AppStyling.medium14White.copyWith(fontSize: 11.5.sp,height: 1)
+                        : widget.titleStyle ?? AppStyling.medium14Black.copyWith(fontSize: 11.5.sp,height: 1),
                 overflow: TextOverflow.ellipsis,
               ),
             ],

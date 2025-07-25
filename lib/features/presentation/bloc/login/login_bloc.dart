@@ -54,7 +54,7 @@ class LoginBloc extends BaseBloc<LoginEvent, BaseState<LoginState>> {
 
               return LoginSuccessState(message: r.message, isOpening: r.data?.opening);
             } else {
-              if (r.errorCode == 401) {
+              if (r.errorCode == 401 || r.errorCode == 403) {
                 return TokenInvalidState(error: r.message);
               } else {
                 return LoginFailedState(errorMsg: r.message);

@@ -73,6 +73,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   StreamSubscription<List<Printer>>? _devicesStreamSubscription;
 
+  DateTime? _lastStockLimitToastTime;
+
   // Get Printer List
   void startScan() async {
     _devicesStreamSubscription?.cancel();
@@ -151,22 +153,41 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
 
   void _incrementQuantity(int index) {
     if (index < _cartItems.length) {
-      setState(() {
-        _cartItems[index] = Stock(
-          id: _cartItems[index].id,
-          item: _cartItems[index].item,
-          labelPrice: _cartItems[index].labelPrice,
-          itemCost: _cartItems[index].itemCost,
-          retailPrice: _cartItems[index].retailPrice,
-          wholesalePrice: _cartItems[index].wholesalePrice,
-          retailDiscount: _cartItems[index].retailDiscount,
-          wholesaleDiscount: _cartItems[index].wholesaleDiscount,
-          qty: _cartItems[index].qty,
-          status: _cartItems[index].status,
-          statusDescription: _cartItems[index].statusDescription,
-          cartQty: (_cartItems[index].cartQty ?? 0) + 1,
-        );
-      });
+      int currentQty = _cartItems[index].cartQty ?? 0;
+      int availableStock = _cartItems[index].qty ?? 0;
+      if (currentQty < availableStock) {
+        setState(() {
+          _cartItems[index] = Stock(
+            id: _cartItems[index].id,
+            item: _cartItems[index].item,
+            labelPrice: _cartItems[index].labelPrice,
+            itemCost: _cartItems[index].itemCost,
+            retailPrice: _cartItems[index].retailPrice,
+            wholesalePrice: _cartItems[index].wholesalePrice,
+            retailDiscount: _cartItems[index].retailDiscount,
+            wholesaleDiscount: _cartItems[index].wholesaleDiscount,
+            qty: _cartItems[index].qty,
+            status: _cartItems[index].status,
+            statusDescription: _cartItems[index].statusDescription,
+            cartQty: currentQty + 1,
+          );
+        });
+      } else {
+        // Show a toast or dialog to inform user, but not more than once every 4 seconds
+        final now = DateTime.now();
+        if (_lastStockLimitToastTime == null ||
+            now.difference(_lastStockLimitToastTime!).inSeconds >= 4) {
+          _lastStockLimitToastTime = now;
+          ZynoloToast(
+            title: 'Cannot add more than available stock!',
+            toastType: Toast.warning,
+            animationDuration: Duration(milliseconds: 500),
+            toastPosition: Position.top,
+            animationType: AnimationType.fromTop,
+            backgroundColor: AppColors.whiteColor.withOpacity(1),
+          ).show(context);
+        }
+      }
     }
   }
 
@@ -417,13 +438,31 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           borderSide: BorderSide(color: AppColors.transparent),
                         ),
                         // Adjusted padding
-                        prefixIcon: Icon(
-                          HugeIcons.strokeRoundedSearch01,
-                          size: 13.sp,
-                          color: AppColors.darkGrey.withOpacity(0.7),
+                        prefixIcon: Padding(
+                          padding: EdgeInsets.only(left: 7.sp ),
+                          child: Icon(
+                            HugeIcons.strokeRoundedSearch01,
+                            size: 13.sp,
+                            color: AppColors.darkGrey.withOpacity(0.3),
+                          ),
+                        ),
+                        suffixIcon: Padding(
+                          padding: EdgeInsets.only(right: 5),
+                          child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                });
+                              },
+                              icon: Icon(
+                                Icons.cancel_outlined,
+                                color: AppColors.darkGrey.withOpacity(0.3),
+                                size: 13.sp,
+                              )),
                         ),
                         hintText: "Search here for product",
                         isDense: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 11.sp),
                         hintStyle: AppStyling.regular12Grey.copyWith(
                             color: AppColors.darkGrey.withOpacity(0.5),
                             height: 1,
@@ -462,8 +501,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       alignment: Alignment.center,
                       child: Text(
                         buttonText,
-                        style:
-                            AppStyling.regular12White.copyWith(fontSize: 11.sp),
+                        style: AppStyling.medium12White
+                            .copyWith(fontSize: 11.sp, height: 1),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -488,16 +527,16 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                           children: [
                             Icon(
                               HugeIcons.strokeRoundedRefresh,
-                              size: 13.sp,
+                              size: 12.sp,
                               color: AppColors.darkBlue,
                             ),
                             SizedBox(
-                              width: 8.sp,
+                              width: 7.sp,
                             ),
                             Text(
                               'Refresh',
-                              style: AppStyling.regular14Black
-                                  .copyWith(fontSize: 11.sp),
+                              style: AppStyling.medium14Black
+                                  .copyWith(fontSize: 11.sp, height: 1),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -524,14 +563,14 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             Icon(
                               HugeIcons.strokeRoundedAddCircle,
                               color: AppColors.darkBlue,
-                              size: 13.sp,
+                              size: 12.sp,
                             ),
                             SizedBox(
-                              width: 8.sp,
+                              width: 7.sp,
                             ),
                             Text(
                               'New Tab',
-                              style: AppStyling.regular12Black
+                              style: AppStyling.medium14Black
                                   .copyWith(fontSize: 11.sp),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -566,7 +605,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                 ),
                 Spacer(),
                 Container(
-                  padding: EdgeInsets.fromLTRB(10.sp, 5.sp, 10.sp, 5.sp),
+                  padding: EdgeInsets.fromLTRB(7.sp, 7.sp, 10.sp, 7.sp),
                   // Match padding
                   decoration: BoxDecoration(
                     color: AppColors.whiteColor,
@@ -575,8 +614,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                   child: Row(
                     children: [
                       SizedBox(
-                        width: 18.sp,
-                        height: 18.sp,
+                        width: 17.sp,
+                        height: 17.sp,
                         child: ClipRRect(
                             borderRadius: BorderRadius.circular(60),
                             child: Image.asset(AppImages.userAvatar)),
@@ -1083,7 +1122,9 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                               itemCode: stock.item?.code,
                               itemName: stock.item?.description,
                               labelPrice: stock.labelPrice,
-                              salePrice: _isRetail ? stock.retailPrice : stock.wholesalePrice,
+                              salePrice: _isRetail
+                                  ? stock.retailPrice
+                                  : stock.wholesalePrice,
                               stockQty: stock.qty,
                               cost: stock.itemCost,
                               onAddToCart: addProductToCart,
@@ -1096,7 +1137,6 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       GridColumn(
                         columnName: 'name',
                         width: 17.w,
-
                         // Set a wider width for item names
                         label: Container(
                           decoration: BoxDecoration(
@@ -1118,8 +1158,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       GridColumn(
                         columnName: 'code',
-                        // width: 11.w,
-                        columnWidthMode: ColumnWidthMode.fitByCellValue,
+                        width: 12.w,
+                        // columnWidthMode: ColumnWidthMode.fitByCellValue,
                         autoFitPadding: EdgeInsets.zero,
                         label: Container(
                           decoration: BoxDecoration(
@@ -1152,7 +1192,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                       ),
                       GridColumn(
                         columnName: 'qty',
-                        width: 8.w,
+                        width: 7.w,
                         columnWidthMode: ColumnWidthMode.fitByCellValue,
                         label: Container(
                           decoration: BoxDecoration(
@@ -1181,8 +1221,7 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                             ),
                           ),
                           alignment: Alignment.center,
-                          padding: EdgeInsets.only(
-                             right: 5.sp),
+                          padding: EdgeInsets.only(right: 5.sp),
                           child: Text(
                             _isRetail ? 'Sale Price' : 'Wholesale Price',
                             textAlign: TextAlign.center,
@@ -1496,8 +1535,10 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                         color: AppColors.primaryColor.withOpacity(0.2),
                         title: 'Customer',
-                        titleStyle: AppStyling.medium12Black.copyWith(
-                            color: AppColors.darkBlue, fontSize: 11.sp),
+                        titleStyle: AppStyling.medium14Black.copyWith(
+                            color: AppColors.darkBlue,
+                            fontSize: 11.5.sp,
+                            height: 1),
                         onTap: () {},
                       ),
                     ),
@@ -1514,8 +1555,8 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                         ),
                         color: AppColors.red.withOpacity(0.15),
                         title: 'Cancel Sale',
-                        titleStyle: AppStyling.medium12Black
-                            .copyWith(color: AppColors.red, fontSize: 11.sp),
+                        titleStyle: AppStyling.medium14Black.copyWith(
+                            color: AppColors.red, fontSize: 11.5.sp, height: 1),
                         onTap: () {
                           AppDialogBox.show(
                             context,
@@ -1547,15 +1588,11 @@ class _NewSalesTabState extends BaseViewState<NewSalesTab> {
                     child: Icon(HugeIcons.strokeRoundedCheckmarkBadge03),
                   ),
                   title: 'Checkout',
-                  titleStyle: AppStyling.medium12Black
-                      .copyWith(color: AppColors.whiteColor, fontSize: 11.sp),
+                  titleStyle: AppStyling.medium12Black.copyWith(
+                      color: AppColors.whiteColor,
+                      fontSize: 11.5.sp,
+                      height: 1),
                   onTap: () async {
-                    // final service = FlutterThermalPrinterNetwork(_ip,
-                    //     port: int.parse(_port));
-                    // await service.connect();
-                    // final bytes = await _generateReceipt();
-                    // await service.printTicket(bytes);
-                    // await service.disconnect();
                     if (_cartItems.isNotEmpty) {
                       setState(() {
                         _isCheckOutPage = true;
@@ -1691,7 +1728,7 @@ class StockDataSource extends DataGridSource {
                 : AppColors.bgColor.withOpacity(0.65),
           ),
           alignment: idx == 0 ? Alignment.centerLeft : Alignment.center,
-          padding:  EdgeInsets.only(left: idx == 0 ? 13.sp:0),
+          padding: EdgeInsets.only(left: idx == 0 ? 13.sp : 0),
           margin: EdgeInsets.fromLTRB(0, 0, isRetailPrice ? 8 : 0, 3),
           child: Text(
             cell.value is double

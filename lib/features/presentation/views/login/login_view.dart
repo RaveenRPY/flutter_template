@@ -47,7 +47,15 @@ class _LoginViewState extends BaseViewState<LoginView> {
           if (state is LoginSuccessState) {
             FocusManager.instance.primaryFocus?.unfocus();
             // Navigator.pushReplacementNamed(context, Routes.kSaleView);
-            OpeningBalance.show(context);
+            if(state.isOpening ?? false){
+              OpeningBalance.show(context);
+            } else {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                Routes.kSaleView,
+                    (route) => false,
+              );
+            }
           } else if (state is LoginFailedState) {
             FocusManager.instance.primaryFocus?.unfocus();
             AppDialogBox.show(
@@ -243,6 +251,9 @@ class _LoginViewState extends BaseViewState<LoginView> {
                                     SizedBox(height: 25.sp),
                                     AppMainButton(
                                       title: "Login",
+                                      titleStyle: AppStyling.medium14Black.copyWith(
+                                          color: AppColors.whiteColor,
+                                          fontSize: 11.5.sp, height: 1),
                                       onTap: () {
                                         FocusScope.of(context).unfocus();
                                         _usernameKey.currentState?.validate();

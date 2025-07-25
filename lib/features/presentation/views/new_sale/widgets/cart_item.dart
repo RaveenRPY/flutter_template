@@ -155,17 +155,20 @@ class CartItem extends StatelessWidget {
                       children: [
                         Container(
                           padding:  EdgeInsets.symmetric(
-                            horizontal: 8.sp,
-                            vertical: 6.sp,
+                            horizontal: 9.sp,
+                            vertical: 5.sp,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.bgColor.withOpacity(1),
-                            borderRadius: BorderRadius.circular(4),
+                            color: AppColors.primaryColor.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
                             productCode,
-                            style: AppStyling.regular10Grey.copyWith(fontSize: 10.5.sp, color: AppColors.darkBlue.withOpacity(0.7),height: 1),
-                            overflow: TextOverflow.ellipsis,
+                            style: AppStyling.regular10Grey.copyWith(
+                                color: AppColors.whiteColor.withOpacity(1),
+                                fontSize: 9.sp,
+                                height: 1
+                            ),
                           ),
                         ),
                         Spacer(),
@@ -401,25 +404,26 @@ class CartItem extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      0.3.verticalSpace,
+                      0.4.verticalSpace,
                       // Product Code and Unit Price
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Container(
                             padding:  EdgeInsets.symmetric(
-                              horizontal: 5.sp,
-                              vertical: 3.sp,
+                              horizontal: 9.sp,
+                              vertical: 5.sp,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.bgColor.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(4),
+                              color: AppColors.primaryColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(30),
                             ),
                             child: Text(
                               productCode,
                               style: AppStyling.regular10Grey.copyWith(
-                                color: AppColors.darkGrey.withOpacity(0.7),
+                                color: AppColors.whiteColor.withOpacity(1),
                                 fontSize: 9.sp,
+                                height: 1
                               ),
                             ),
                           ),

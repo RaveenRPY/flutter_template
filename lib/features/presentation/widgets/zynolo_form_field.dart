@@ -84,8 +84,9 @@ class _AventaFormFieldState extends State<AventaFormField> {
     // Initialize money masked controller for currency
     if (widget.isCurrency) {
       _moneyMaskedTextController = MoneyMaskedTextController(
-        decimalSeparator: '.',
+        decimalSeparator: '', // No decimal separator
         thousandSeparator: ',',
+        precision: 0, // No decimals can be entered
         initialValue: widget.controller.text.isEmpty
             ? null
             : double.tryParse(widget.controller.text.replaceAll(",", "")),
@@ -152,6 +153,7 @@ class _AventaFormFieldState extends State<AventaFormField> {
         if (widget.inputFormatters != null) ...widget.inputFormatters!,
         // Prevent emoji input
         FilteringTextInputFormatter.deny(RegExp(AppValidator().emojiRegexp)),
+        if (widget.isCurrency) FilteringTextInputFormatter.digitsOnly,
       ],
       validator: widget.validator,
       readOnly: widget.isReadOnly!,
@@ -259,6 +261,13 @@ class _AventaFormFieldState extends State<AventaFormField> {
             width: 1.5,
           ),
         ),
+        // Always show .00 for currency fields
+        suffix: widget.isCurrency
+            ? Padding(
+                padding: const EdgeInsets.only(left: 2, right: 8),
+                child: Text('.00', style: AppStyling.regular14Black),
+              )
+            : null,
       ),
     );
   }

@@ -8,23 +8,27 @@ class CashInOutRecord extends StatelessWidget {
   final DateTime date;
   final String remark;
   final double amount;
+  final bool isLast;
 
   const CashInOutRecord(
       {super.key,
       required this.date,
       required this.remark,
-      required this.amount});
+      required this.amount,
+      required this.isLast});
 
   @override
   Widget build(BuildContext context) {
-    String formatedAmount = NumberFormat.currency(locale: 'en_').format(amount);
+    String formatedAmount = NumberFormat.currency(symbol: '').format(amount);
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.darkGrey.withOpacity(0.0),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.primaryColor.withOpacity(0.4),
+            color: isLast
+                ? AppColors.transparent
+                : AppColors.primaryColor.withOpacity(0.4),
           ),
         ),
       ),

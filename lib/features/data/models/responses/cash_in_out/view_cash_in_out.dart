@@ -48,7 +48,7 @@ class Cash {
 
   factory Cash.fromJson(Map<String, dynamic> json) => Cash(
         id: json["id"],
-        date: json["date"],
+        date: json["date"] == null ? null : DateTime.parse(json["date"]),
         cashInOut: json["cashInOut"],
         cashInOutDescription: json["cashInOutDescription"],
         remark: json["remark"],
@@ -57,7 +57,7 @@ class Cash {
 
   Map<String, dynamic> toJson() => {
         "id": id,
-        "date": date,
+        "date": date?.toIso8601String(),
         "cashInOut": cashInOut,
         "cashInOutDescription": cashInOutDescription,
         "remark": remark,

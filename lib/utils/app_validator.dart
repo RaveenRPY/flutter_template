@@ -122,7 +122,7 @@ class AppValidator {
     bool isValid = false;
     try {
       final DateResponse dateResponse = getDateResponse(nic);
-      final DateTime dob = DateFormat('dd/MM/yyyy').parse(dateOfBirth);
+      final DateTime dob = DateFormat('dd-MM-yyyy').parse(dateOfBirth);
 
       if (dateResponse.year == dob.year &&
           dateResponse.month == dob.month &&

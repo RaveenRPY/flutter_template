@@ -60,7 +60,7 @@ class StockBloc extends BaseBloc<StockEvent, BaseState<StockState>> {
               return GetStockSuccessState(
                   message: r.message, stockList: r.data?.stock);
             } else {
-              if (r.errorCode == 401) {
+              if (r.errorCode == 401 || r.errorCode == 403) {
                 return TokenInvalidState(error: r.message);
               } else {
                 return GetStockFailedState(errorMsg: r.message);
@@ -106,7 +106,7 @@ class StockBloc extends BaseBloc<StockEvent, BaseState<StockState>> {
             if (r.success!) {
               return CheckoutSuccessState(response: r.data, msg: r.message);
             } else {
-              if (r.errorCode == 401) {
+              if (r.errorCode == 401 || r.errorCode == 403) {
                 return TokenInvalidState(error: r.message);
               } else {
                 return CheckoutFailedState(errorMsg: r.message);
@@ -144,7 +144,7 @@ class StockBloc extends BaseBloc<StockEvent, BaseState<StockState>> {
               return ViewTodayCashInOutSuccessState(
                   dataList: r.data?.cash, msg: r.message);
             } else {
-              if (r.errorCode == 401) {
+              if (r.errorCode == 401 || r.errorCode == 403) {
                 return TokenInvalidState(error: r.message);
               } else {
                 return ViewTodayCashInOutFailedState(errorMsg: r.message);
@@ -185,7 +185,7 @@ class StockBloc extends BaseBloc<StockEvent, BaseState<StockState>> {
               return CashInOutSuccessState(
                   msg: r.message);
             } else {
-              if (r.errorCode == 401) {
+              if (r.errorCode == 401 || r.errorCode == 403) {
                 return TokenInvalidState(error: r.message);
               } else {
                 return CashInOutFailedState(errorMsg: r.message);

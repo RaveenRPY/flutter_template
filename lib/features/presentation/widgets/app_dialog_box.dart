@@ -81,7 +81,9 @@ class AppDialogBox extends StatelessWidget {
                               child: AppMainButton(
                                 title: negativeButtonText ?? '',
                                 color: AppColors.darkGrey.withOpacity(0.15),
-                                titleStyle: AppStyling.medium14Black.copyWith(color: AppColors.darkGrey),
+                                titleStyle: AppStyling.medium14Black.copyWith(
+                                    color: AppColors.darkGrey,
+                                    fontSize: 11.5.sp, height: 1),
                                 onTap: () {
                                   FocusScope.of(context).unfocus();
                                   Navigator.pop(context);
@@ -93,7 +95,9 @@ class AppDialogBox extends StatelessWidget {
                           Expanded(
                             child: AppMainButton(
                               title: positiveButtonText ?? 'Done',
-                              titleStyle: AppStyling.medium14White,
+                              titleStyle: AppStyling.medium14Black.copyWith(
+                                  color: AppColors.whiteColor,
+                                  fontSize: 11.5.sp, height: 1),
                               onTap: () {
                                 FocusScope.of(context).unfocus();
                                 Navigator.pop(context);

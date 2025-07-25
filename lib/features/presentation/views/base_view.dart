@@ -4,6 +4,7 @@ import 'package:AventaPOS/features/data/datasources/local_datasource.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_images.dart';
@@ -108,15 +109,16 @@ abstract class BaseViewState<Page extends BaseView> extends State<Page> {
                     child: Wrap(
                       children: [
                         Container(
-                          height: 100,
-                          width: 100,
+                          height: 25.sp,
+                          width: 25.sp,
                           decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.whiteColor),
                           child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Lottie.asset(
-                              AppImages.loadingAnimation,
-                              frameRate: const FrameRate(90),
-                            ),
+                            padding:  EdgeInsets.all(10.sp),
+                            // child: Lottie.asset(
+                            //   AppImages.loadingAnimation,
+                            //   frameRate: const FrameRate(90),
+                            // ),
+                            child: CircularProgressIndicator(color: AppColors.primaryColor,strokeWidth: 5,),
                           ),
                           // child: Padding(
                           //   padding: const EdgeInsets.all(10.0),

@@ -23,10 +23,12 @@ import '../../../../../utils/app_colors.dart';
 import '../../../../../utils/app_images.dart';
 import '../../../../../utils/app_stylings.dart';
 import '../../../../../utils/enums.dart';
+import '../../../../../utils/printer_service.dart';
 import '../../../widgets/app_dialog_box.dart';
 import '../../../widgets/zynolo_toast.dart';
 
-typedef CashInOutChangedCallback = void Function(CashMode mode, String amount, String remark);
+typedef CashInOutChangedCallback = void Function(
+    CashMode mode, String amount, String remark);
 
 class CashInOutWindow extends BaseView {
   const CashInOutWindow({super.key});
@@ -40,7 +42,7 @@ class CashInOutWindow extends BaseView {
       barrierLabel: "",
       barrierDismissible: true,
       transitionBuilder: (context, a1, a2, widget) {
-        return Transform.scale( 
+        return Transform.scale(
           scale: a1.value,
           child: Opacity(
             opacity: a1.value,
@@ -68,11 +70,15 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
   bool _isLoadingHistory = false;
   bool _isLoadingCashInOut = false;
   bool _isAmountValidated = false;
+  bool _isRemarkValidated = false;
 
   List<Cash>? _cashInHistory = [];
   List<Cash>? _cashOutHistory = [];
 
   CashMode _cashMode = CashMode.inCash;
+
+  double _amount = 0.0;
+  String? _remark = "";
 
   @override
   void initState() {
@@ -83,11 +89,20 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
   }
 
   @override
+  Future<void> didChangeDependencies() async {
+    // Discover printers
+    final printers = await PrinterService.instance.discoverUsbPrinters();
+    // Connect to a printer
+    await PrinterService.instance.connectUsbPrinter(printers[0]);
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget buildView(BuildContext context) {
     return BlocProvider<StockBloc>(
       create: (context) => _bloc,
       child: BlocListener<StockBloc, BaseState<StockState>>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is ViewTodayCashInOutLoadingState) {
             setState(() {
               _isLoadingHistory = true;
@@ -97,7 +112,8 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
               _isLoadingHistory = false;
               _cashInHistory = state.dataList
                   ?.where(
-                    (element) => element.cashInOut == "IN",
+                    (element) => (element.cashInOut == "IN" ||
+                        element.cashInOut == "OP"),
                   )
                   .toList();
               _cashOutHistory = state.dataList
@@ -106,6 +122,8 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                   )
                   .toList();
             });
+            // Open cash drawer
+            await PrinterService.instance.openCashDrawer();
           } else if (state is ViewTodayCashInOutFailedState) {
             FocusManager.instance.primaryFocus?.unfocus();
             setState(() {
@@ -128,7 +146,6 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
             setState(() {
               _isLoadingCashInOut = false;
             });
-            Navigator.pop(context);
             ZynoloToast(
               title: state.msg,
               toastType: Toast.success,
@@ -137,6 +154,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
               animationType: AnimationType.fromTop,
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
+            Navigator.pop(context);
           } else if (state is CashInOutFailedState) {
             setState(() {
               _isLoadingCashInOut = false;
@@ -180,12 +198,12 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                   children: [
                     // Compact Content
                     Padding(
-                      padding: EdgeInsets.fromLTRB(30, 5, 30, 30),
+                      padding: EdgeInsets.fromLTRB(15.sp, 15.sp, 15.sp, 15.sp),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 40),
+                            padding: EdgeInsets.only(top: 2.h),
                             child: Column(
                               children: [
                                 Row(
@@ -239,6 +257,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                               Form(
                                 key: _amountFormKey,
                                 child: AventaFormField(
+                                  focusNode: _amountFocusNode,
                                   controller: _amountController,
                                   label: "Amount",
                                   isCurrency: true,
@@ -246,14 +265,24 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                   onChanged: (value) {
                                     setState(() {
                                       _amountFormKey.currentState?.validate();
-                                      log(_amountController.text.toString());
+                                      _amount = double.parse(
+                                          value.replaceAll(',', ''));
                                     });
                                   },
                                   validator: (price) {
                                     if (price != null) {
-                                      setState(() {
-                                        _isAmountValidated = true;
-                                      });
+                                      if (double.parse(
+                                              price.replaceAll(',', '')) >
+                                          0) {
+                                        setState(() {
+                                          _isAmountValidated = true;
+                                        });
+                                      } else {
+                                        setState(() {
+                                          _isAmountValidated = false;
+                                        });
+                                        return 'Price can\'t be zero';
+                                      }
                                     } else {
                                       setState(() {
                                         _isAmountValidated = false;
@@ -265,6 +294,20 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                     });
                                     return null;
                                   },
+                                  onCompleted: () {
+                                    if (_amount > 0) {
+                                      _bloc.add(
+                                        CashInOutEvent(
+                                          cashInOut:
+                                              _cashMode == CashMode.inCash
+                                                  ? "IN"
+                                                  : "OUT",
+                                          amount: _amount,
+                                          remark: _remarkController.text,
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                                 onChanged: () {
                                   setState(() {
@@ -273,19 +316,59 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                 },
                               ),
                               SizedBox(
-                                height: 20,
+                                height: 13.sp,
                               ),
                               Form(
                                 key: _remarkFormKey,
                                 child: AventaFormField(
                                   controller: _remarkController,
                                   label: "Remark",
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _remarkFormKey.currentState?.validate();
+                                      _remark = value;
+                                    });
+                                  },
+                                  validator: (remark) {
+                                    if (remark != null) {
+                                      setState(() {
+                                        _remark = remark;
+                                        _isRemarkValidated = true;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _isRemarkValidated = true;
+                                      });
+                                      return 'Remark can\'t be empty';
+                                    }
+                                    setState(() {
+                                      _isAmountValidated = false;
+                                    });
+                                    return null;
+                                  },
+                                  onCompleted: () {
+                                    _remarkFormKey.currentState?.validate();
+                                    _amountFormKey.currentState?.validate();
+
+                                    if (_amount > 0 && _remark != "") {
+                                      _bloc.add(
+                                        CashInOutEvent(
+                                          cashInOut:
+                                              _cashMode == CashMode.inCash
+                                                  ? "IN"
+                                                  : "OUT",
+                                          amount: _amount,
+                                          remark: _remarkController.text,
+                                        ),
+                                      );
+                                    }
+                                  },
                                 ),
                               ),
                             ],
                           ),
 
-                          SizedBox(height: 25),
+                          SizedBox(height: 14.sp),
 
                           // Action Buttons
                           Row(
@@ -295,8 +378,10 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                   title: "Cancel",
                                   isNegative: true,
                                   color: AppColors.darkGrey.withOpacity(0.15),
-                                  titleStyle: AppStyling.medium14Black
-                                      .copyWith(color: AppColors.darkBlue),
+                                  titleStyle: AppStyling.medium14Black.copyWith(
+                                      color: AppColors.darkBlue,
+                                      fontSize: 11.5.sp,
+                                      height: 1),
                                   onTap: () {
                                     if (_isLoadingCashInOut) {
                                       ZynoloToast(
@@ -320,24 +405,36 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                               Expanded(
                                 child: AppMainButton(
                                   title: "Save",
+                                  titleStyle: AppStyling.medium14Black.copyWith(
+                                      color: AppColors.whiteColor,
+                                      fontSize: 11.5.sp,
+                                      height: 1),
                                   prefixIcon: _isLoadingCashInOut
-                                      ? CircularProgressIndicator(
-                                          color: AppColors.whiteColor,
+                                      ? Padding(
+                                          padding: EdgeInsets.only(right: 5),
+                                          child: SizedBox(
+                                            width: 17,
+                                            height: 17,
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.whiteColor,
+                                              strokeWidth: 2.5,
+                                            ),
+                                          ),
                                         )
                                       : null,
-                                  isEnable: _isAmountValidated,
+                                  isEnable: _amount > 0 && _remark != "",
                                   onTap: () {
                                     // Navigator.pop(context);
+                                    _amountFormKey.currentState?.validate();
+                                    _remarkFormKey.currentState?.validate();
                                     _bloc.add(
                                       CashInOutEvent(
-                                        cashInOut: _cashMode == CashMode.inCash
-                                            ? "IN"
-                                            : "OUT",
-                                        amount: double.tryParse(
-                                          _amountController.text
-                                              .replaceAll(',', ''),
-                                        ),
-                                      ),
+                                          cashInOut:
+                                              _cashMode == CashMode.inCash
+                                                  ? "IN"
+                                                  : "OUT",
+                                          amount: _amount,
+                                          remark: _remarkController.text),
                                     );
                                   },
                                 ),
@@ -390,7 +487,7 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                           )),
                                           Expanded(
                                               child: Text(
-                                            "Amount",
+                                            "Amount (Rs)",
                                             textAlign: TextAlign.center,
                                             style: AppStyling.semi12Black,
                                           )),
@@ -416,6 +513,14 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                             date: item.date ?? DateTime.now(),
                                             remark: item.remark ?? "N/A",
                                             amount: item.amount ?? 0,
+                                            isLast: (_cashMode ==
+                                                            CashMode.inCash
+                                                        ? _cashInHistory
+                                                        : _cashOutHistory)
+                                                    ?.last ==
+                                                (_cashMode == CashMode.inCash
+                                                    ? _cashInHistory![index]
+                                                    : _cashOutHistory![index]),
                                           );
                                         },
                                       )
@@ -458,8 +563,8 @@ class _CashInOutWindowState extends BaseViewState<CashInOutWindow> {
                                               MainAxisAlignment.center,
                                           children: [
                                             SizedBox(
-                                              width: 24,
-                                              height: 24,
+                                              width: 20,
+                                              height: 20,
                                               child: CircularProgressIndicator(
                                                 color: AppColors.primaryColor,
                                                 strokeWidth: 3,

@@ -54,6 +54,9 @@ class ZynoloToast extends StatefulWidget {
   final Function()? onToastClosed;
   final Toast? toastType;
 
+  static DateTime? _lastToastTime;
+  static const int _toastGapSeconds = 4;
+
   ZynoloToast({
     super.key,
     this.title,
@@ -82,12 +85,16 @@ class ZynoloToast extends StatefulWidget {
     this.onToastClosed,
     this.toastType,
   }) {
-    assert(
-      title != null || description != null
-    );
+    assert(title != null || description != null);
   }
 
   void show(BuildContext context) {
+    final now = DateTime.now();
+    if (_lastToastTime != null &&
+        now.difference(_lastToastTime!).inSeconds < _toastGapSeconds) {
+      return;
+    }
+    _lastToastTime = now;
     overlayEntry = _overlayEntryBuilder();
     final overlay = Overlay.maybeOf(context);
 
@@ -302,7 +309,7 @@ class _ZynoloToastState extends State<ZynoloToast>
                 color: widget.backgroundColor.withOpacity(0.9),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
@@ -333,8 +340,7 @@ class _ZynoloToastState extends State<ZynoloToast>
     switch (type) {
       case Toast.success:
         return toastIcon(
-            color: AppColors.green,
-            icon: Icons.check_circle_outline_rounded);
+            color: AppColors.green, icon: Icons.check_circle_outline_rounded);
       case Toast.failed:
         return toastIcon(color: AppColors.red, icon: Icons.cancel_outlined);
       case Toast.warning:
@@ -377,7 +383,7 @@ class _ZynoloToastState extends State<ZynoloToast>
       sizeFactor: _animation!,
       axis: Axis.horizontal,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(7, 0, 9, 0),
+        padding: const EdgeInsets.fromLTRB(8, 0, 9, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: widget.layout == ToastLayout.ltr
@@ -388,21 +394,8 @@ class _ZynoloToastState extends State<ZynoloToast>
               TypewriterText(
                 text: widget.title ?? '',
                 duration: const Duration(milliseconds: 1),
-                textStyle: AppStyling.medium12Black.copyWith(fontSize: 11.sp,height: 1),
-              ),
-            if (widget.action != null)
-              Column(
-                children: [
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      // widget.actionHandler?.call();
-                    },
-                    child: widget.action,
-                  ),
-                ],
+                textStyle: AppStyling.medium12Black
+                    .copyWith(fontSize: 11.sp, height: 2),
               ),
           ],
         ),

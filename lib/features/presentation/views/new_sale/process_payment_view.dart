@@ -35,6 +35,7 @@ import 'package:thermal_printer/thermal_printer.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../utils/app_images.dart';
 import '../../../../utils/enums.dart';
+import '../../../../utils/printer_service.dart';
 import '../../../data/models/responses/sale/get_stock.dart';
 import '../../widgets/app_dialog_box.dart';
 import '../../widgets/zynolo_toast.dart';
@@ -55,11 +56,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
   String _paymentType = 'Cash';
   List<BillingItem> _billingItemList = [];
 
-  // final _flutterThermalPrinterPlugin = FlutterThermalPrinter.instance;
   SalesInvoiceData invoiceData = SalesInvoiceData();
-
-  final String _ip = '192.168.123.123';
-  final String _port = '9100';
 
   final FocusNode _focusNode = FocusNode();
 
@@ -70,6 +67,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
   final PrinterManager _printerManager = PrinterManager.instance;
   List<PrinterDevice> _devices = [];
   PrinterDevice? _selectedPrinter;
+
   ///-----------------------------------------------------------------------------------------
 
   // Get Printer List
@@ -118,36 +116,35 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
         .toList();
   }
 
-  // Scan for USB printers
-  void _scanForPrinters() {
-    _printerManager.discovery(type: PrinterType.usb).listen((device) {
-      setState(() {
-        _devices.add(device);
-        log("----Printers - $_devices");
-      });
-    });
-    // _connectDevice(_devices[0]);
-  }
+  // // Scan for USB printers
+  // void _scanForPrinters() {
+  //   _printerManager.discovery(type: PrinterType.usb).listen((device) {
+  //     setState(() {
+  //       _devices.add(device);
+  //       log("----Printers - $_devices");
+  //     });
+  //   });
+  //   // _connectDevice(_devices[0]);
+  // }
 
-  // Connect to the selected USB printer
-  Future<void> _connectDevice(PrinterDevice device) async {
-    await _printerManager.connect(
-      type: PrinterType.usb,
-      model: UsbPrinterInput(
-        name: device.name,
-        productId: device.productId,
-        vendorId: device.vendorId,
-      ),
-    );
-    setState(() {
-      _selectedPrinter = device;
-    });
-  }
+  // // Connect to the selected USB printer
+  // Future<void> _connectDevice(PrinterDevice device) async {
+  //   await _printerManager.connect(
+  //     type: PrinterType.usb,
+  //     model: UsbPrinterInput(
+  //       name: device.name,
+  //       productId: device.productId,
+  //       vendorId: device.vendorId,
+  //     ),
+  //   );
+  //   setState(() {
+  //     _selectedPrinter = device;
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
-    _scanForPrinters();
     _customerPaidController.text = "0.00";
     _focusNode.requestFocus();
     _billingItemList = convertStockToBillingItems(widget.params.cartItemList);
@@ -155,42 +152,45 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
 
   @override
   void didChangeDependencies() async {
-    await Future.delayed(Duration(seconds: 1),(){_connectDevice(_devices[0]);});
+    // Discover printers
+    final printers = await PrinterService.instance.discoverUsbPrinters();
+    // Connect to a printer
+    await PrinterService.instance.connectUsbPrinter(printers[0]);
     super.didChangeDependencies();
   }
 
-  void printBill({
-    required List<Stock> itemList,
-    required String invoiceNo,
-    required DateTime invoiceDate,
-    required String cashier,
-    required String paymentType,
-    required String outlet,
-    required String total,
-    required String cash,
-    required String changes,
-  }) async {
-    if (_selectedPrinter == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No printer selected')),
-      );
-      return;
-    }
-
-    final bytes = await _generateReceipt(
-      itemList: itemList,
-      invoiceNo: invoiceNo,
-      invoiceDate: invoiceDate,
-      cashier: cashier,
-      paymentType: paymentType,
-      outlet: outlet,
-      total: total,
-      cash: cash,
-      changes: changes,
-    );
-    await _printerManager.send(type: PrinterType.usb, bytes: bytes);
-    // await _printerManager.disconnect(type: PrinterType.usb);
-  }
+  // void printBill({
+  //   required List<Stock> itemList,
+  //   required String invoiceNo,
+  //   required DateTime invoiceDate,
+  //   required String cashier,
+  //   required String paymentType,
+  //   required String outlet,
+  //   required String total,
+  //   required String cash,
+  //   required String changes,
+  // }) async {
+  //   if (_selectedPrinter == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('No printer selected')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final bytes = await _generateReceipt(
+  //     itemList: itemList,
+  //     invoiceNo: invoiceNo,
+  //     invoiceDate: invoiceDate,
+  //     cashier: cashier,
+  //     paymentType: paymentType,
+  //     outlet: outlet,
+  //     total: total,
+  //     cash: cash,
+  //     changes: changes,
+  //   );
+  //   await _printerManager.send(type: PrinterType.usb, bytes: bytes);
+  //   // await _printerManager.disconnect(type: PrinterType.usb);
+  // }
 
   @override
   Widget buildView(BuildContext context) {
@@ -201,7 +201,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     return BlocProvider<StockBloc>(
       create: (context) => _bloc,
       child: BlocListener<StockBloc, BaseState<StockState>>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is CheckoutSuccessState) {
             setState(() {
               invoiceData.paymentType = state.response?.paymentTypeDescription;
@@ -213,19 +213,21 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               invoiceData.total = _formatCurrency(grandTotal);
               invoiceData.cash = _formatCurrency(_customerPaid);
               invoiceData.changes = _formatCurrency(change);
-
-              printBill(
-                itemList: itemList,
-                invoiceNo: state.response?.invoiceNumber ?? '',
-                invoiceDate: state.response?.invoiceDate ?? DateTime.now(),
-                cashier: state.response?.counter ?? '',
-                paymentType: state.response?.paymentTypeDescription ?? '',
-                outlet: state.response?.outletName ?? '',
-                total: grandTotal.toString(),
-                cash: _customerPaid.toString(),
-                changes: change.toString(),
-              );
             });
+            await PrinterService.instance.printBill(
+              itemList: itemList,
+              invoiceNo: state.response?.invoiceNumber ?? '',
+              invoiceDate: state.response?.invoiceDate ?? DateTime.now(),
+              cashier: state.response?.counter ?? '',
+              paymentType: state.response?.paymentTypeDescription ?? '',
+              outlet: state.response?.outletName ?? '',
+              total: grandTotal.toString(),
+              cash: _customerPaid.toString(),
+              changes: change.toString(),
+              isRetail: widget.params.isRetail ?? true,
+            );
+            // Open cash drawer
+            await PrinterService.instance.openCashDrawer();
 
             ZynoloToast(
               title: state.msg,
@@ -236,7 +238,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
 
-            Future.delayed(Duration(seconds: 2), () {
+            await Future.delayed(Duration(seconds: 2), () {
               setState(() {
                 widget.params.onPop!(true);
               });
@@ -373,6 +375,30 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                       0.0;
                                 });
                               },
+                              onCompleted: (_customerPaid >= grandTotal)
+                                  ? () {
+                                      _bloc.add(CheckOutEvent(
+                                          remark: "",
+                                          salesType: widget.params.isRetail!
+                                              ? "NORMAL"
+                                              : "WHOLESALE",
+                                          paymentType: "CASH",
+                                          totalAmount: grandTotal,
+                                          payAmount: _customerPaid,
+                                          billingItem: _billingItemList));
+                                    }
+                                  : () {
+                                      AppDialogBox.show(
+                                        context,
+                                        title: 'Sorry!',
+                                        message:
+                                            'Cash customer can\'t process any credit payments',
+                                        image: AppImages.failedDialog,
+                                        isTwoButton: false,
+                                        positiveButtonText: 'Okay',
+                                        positiveButtonTap: () {},
+                                      );
+                                    },
                             ),
                             SizedBox(height: 18),
                             Row(
@@ -441,7 +467,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                     isNegative: true,
                                     color: AppColors.darkGrey.withOpacity(0.15),
                                     titleStyle: AppStyling.medium14Black
-                                        .copyWith(color: AppColors.darkGrey),
+                                        .copyWith(
+                                            color: AppColors.darkGrey,
+                                            fontSize: 11.5.sp,
+                                            height: 1),
                                     onTap: () {
                                       AppDialogBox.show(
                                         context,
@@ -460,8 +489,6 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                           });
                                         },
                                       );
-                                      log("__ Device -- $_devices");
-                                      _connectDevice(_devices[0]);
                                     },
                                   ),
                                 ),
@@ -471,6 +498,11 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                                 Expanded(
                                   child: AppMainButton(
                                     title: 'Complete Payment',
+                                    titleStyle: AppStyling.medium14Black
+                                        .copyWith(
+                                            color: AppColors.whiteColor,
+                                            fontSize: 11.5.sp,
+                                            height: 1),
                                     onTap: (_customerPaid >= grandTotal)
                                         ? () {
                                             _bloc.add(CheckOutEvent(
@@ -562,7 +594,7 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     bytes += generator.hr();
     // Invoice metadata
     bytes += generator.text(
-        'Date       : ${DateFormat('yyyy/MM/dd hh:mm:ss a').format(invoiceDate)}');
+        'Date       : ${DateFormat('yyyy-MM-dd hh:mm:ss a').format(invoiceDate)}');
     bytes += generator.text('Invoice No : $invoiceNo');
     bytes += generator.text('Outlet     : $outlet');
     bytes += generator.text('Payment    : $paymentType');

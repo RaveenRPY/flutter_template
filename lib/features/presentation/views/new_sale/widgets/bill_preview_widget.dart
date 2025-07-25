@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../../../utils/app_colors.dart';
 import '../../../../../utils/app_stylings.dart';
@@ -72,18 +73,19 @@ class ReceiptPreview extends StatelessWidget {
                 child: Text( isRetail ?'SALES INVOICE' : 'WHOLESALE INVOICE', style: AppStyling.semi14Black.copyWith(fontWeight: FontWeight.bold)),
               ),
               Divider(thickness: 1, color: AppColors.blackColor),
-              Text('Date       : ${DateFormat('yyyy/MM/dd hh:mm:ss a').format(invoiceDate)}'),
-              Text('Invoice No : $invoiceNo'),
+              Text('Date \t\t\t: ${DateFormat('yyyy-MM-dd hh:mm:ss a').format(invoiceDate)}'),
+              Text('Invoice No  \t\t\t: $invoiceNo'),
               // Text('Cashier    : $cashier'),
-              Text('Outlet     : $outlet'),
-              Text('Payment    : $paymentType'),
+              Text('Outlet \t\t\t: $outlet'),
+              Text('Payment \t\t\t: $paymentType'),
               Divider(thickness: 1, color: AppColors.blackColor),
               Row(
                 children: [
-                  SizedBox(width: 32, child: Text('No', style: AppStyling.semi12Black)),
-                  SizedBox(width: 110, child: Text('Item Name', style: AppStyling.semi12Black)),
-                  SizedBox(width: 60, child: Text('Price', style: AppStyling.semi12Black)),
-                  SizedBox(width: 40, child: Text('Qty', style: AppStyling.semi12Black)),
+                  SizedBox(width: 3.w, child: Text('No', style: AppStyling.semi12Black)),
+                  SizedBox(width: 10.w, child: Text('Item Name', style: AppStyling.semi12Black)),
+                  SizedBox(width: 8.w, child: Text('Price', style: AppStyling.semi12Black)),
+                  SizedBox(width: 3.w, child: Text('Qty', style: AppStyling.semi12Black)),
+                  Spacer(),
                   Expanded(child: Text('Total', style: AppStyling.semi12Black)),
                 ],
               ),
@@ -100,26 +102,28 @@ class ReceiptPreview extends StatelessWidget {
                 if (name.length > 18) {
                   lines.add(Row(
                     children: [
-                      SizedBox(width: 32, child: Text('${i + 1}')),
-                      SizedBox(width: 110, child: Text(name.substring(0, 18))),
-                      SizedBox(width: 60, child: Text(priceStr)),
-                      SizedBox(width: 40, child: Text(qtyStr)),
+                      SizedBox(width: 3.w, child: Text('${i + 1}')),
+                      SizedBox(width: 10.w, child: Text(name.substring(0, 18))),
+                      SizedBox(width: 8.w, child: Text(priceStr)),
+                      SizedBox(width: 3.w, child: Text(qtyStr)),
+                      Spacer(),
                       Expanded(child: Text(totalStr)),
                     ],
                   ));
                   lines.add(Row(
                     children: [
-                      SizedBox(width: 32),
-                      SizedBox(width: 110, child: Text(name.substring(18))),
+                      SizedBox(width: 3.w),
+                      SizedBox(width: 12.w, child: Text(name.substring(18))),
                     ],
                   ));
                 } else {
                   lines.add(Row(
                     children: [
-                      SizedBox(width: 32, child: Text('${i + 1}')),
-                      SizedBox(width: 110, child: Text(name)),
-                      SizedBox(width: 60, child: Text(priceStr)),
-                      SizedBox(width: 40, child: Text(qtyStr)),
+                      SizedBox(width: 3.w, child: Text('${i + 1}')),
+                      SizedBox(width: 10.w, child: Text(name)),
+                      SizedBox(width: 8.w, child: Text(priceStr)),
+                      SizedBox(width: 3.w, child: Text(qtyStr)),
+                      Spacer(),
                       Expanded(child: Text(totalStr)),
                     ],
                   ));

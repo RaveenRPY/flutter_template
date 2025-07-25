@@ -427,14 +427,18 @@ class _PopupWindowState extends State<PopupWindow> {
                             Navigator.pop(context);
                           },
                           color: AppColors.darkGrey.withOpacity(0.15),
-                          titleStyle: AppStyling.regular14Black
-                              .copyWith(color: AppColors.darkGrey),
+                          titleStyle: AppStyling.medium14Black.copyWith(
+                              color: AppColors.darkGrey,
+                              fontSize: 11.5.sp, height: 1),
                         ),
                       ),
                       SizedBox(width: 10),
                       Expanded(
                         child: AppMainButton(
                           title: widget.isForEdit! ? "Save" : "Add to Cart",
+                          titleStyle: AppStyling.medium14Black.copyWith(
+                              color: AppColors.whiteColor,
+                              fontSize: 11.5.sp, height: 1),
                           isEnable: (isQtyValidated &&
                               isCustomSalePriceValidated &&
                               _qty > 0),

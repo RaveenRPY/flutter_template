@@ -59,7 +59,9 @@ class _SaleViewState extends BaseViewState<SaleView> {
               VerticalNavigationBar(
                 selectedIndex: selectedTab,
                 onItemSelected: (index) {
-                  _bloc.add(SaleTabChangedEvent(index));
+                  if(index == 0){
+                    _bloc.add(SaleTabChangedEvent(index));
+                  }
                 },
                 items: navItems,
               ),
