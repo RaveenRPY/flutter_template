@@ -100,7 +100,7 @@ class VerticalNavigationBar extends StatelessWidget {
                           color: AppColors.whiteColor.withOpacity(0.2),
                           shape: BoxShape.circle),
                       child:
-                          Icon(size: 13.sp, Icons.logout, color: AppColors.red),
+                          Icon(size: 14.sp, Icons.logout, color: AppColors.red),
                     ),
                   ),
                 ),
@@ -152,7 +152,7 @@ class _NavigationItem extends StatelessWidget {
                 // HugeIcons.strokeRoundedReturnRequest,
                 // HugeIcons.strokeRoundedReturnRequest,
                 item.icon,
-                size: 13.sp,
+                size: 14.sp,
                 color: isSelected
                     ? AppColors.darkBlue
                     : AppColors.whiteColor.withOpacity(0.7),

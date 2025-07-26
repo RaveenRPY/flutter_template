@@ -40,6 +40,15 @@ class ReceiptPreview extends StatelessWidget {
     ).format(amount);
   }
 
+  // Helper method to format quantity display
+  String _formatQuantity(double quantity) {
+    if (quantity == quantity.toInt()) {
+      return quantity.toInt().toString();
+    } else {
+      return quantity.toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     int totalItems = 0;
@@ -93,10 +102,10 @@ class ReceiptPreview extends StatelessWidget {
               ...itemList.asMap().entries.expand((entry) {
                 final i = entry.key;
                 final item = entry.value;
-                totalItems += item.cartQty as int;
+                totalItems += (item.cartQty ?? 0).toInt();
                 final name = item.item?.description ?? '';
                 final priceStr = _formatCurrency(item.retailPrice ?? 0);
-                final qtyStr = (item.cartQty ?? 0).toString();
+                final qtyStr = _formatQuantity(item.cartQty ?? 0);
                 final totalStr = _formatCurrency((item.cartQty ?? 0) * (item.retailPrice ?? 0));
                 List<Widget> lines = [];
                 if (name.length > 18) {

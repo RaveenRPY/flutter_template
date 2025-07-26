@@ -69,7 +69,7 @@ class _SaleViewState extends BaseViewState<SaleView> {
                 child: Container(
                   decoration: BoxDecoration(color: AppColors.primaryColor),
                   child: Container(
-                    margin: EdgeInsets.fromLTRB(0, 12.sp, 12.sp, 12.sp),
+                    margin: EdgeInsets.fromLTRB(0, 10.sp, 10.sp, 10.sp),
                     decoration: BoxDecoration(
                         color: AppColors.bgColor,
                         borderRadius: BorderRadius.circular(30)),

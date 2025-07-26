@@ -17,11 +17,11 @@ class PopupWindow extends StatefulWidget {
   String? itemCode;
   double? labelPrice;
   double? cost;
-  int? qty;
-  int? stockQty;
+  double? qty;
+  double? stockQty;
   double? salePrice;
   bool? isForEdit;
-  final void Function(Stock, int, double)? onAddToCart;
+  final void Function(Stock, double, double, bool)? onAddToCart;
   Stock? stock;
 
   PopupWindow(
@@ -46,12 +46,12 @@ class PopupWindow extends StatefulWidget {
     String? itemCode,
     double? labelPrice,
     double? cost,
-    int? qty,
-    int? stockQty,
+    double? qty,
+    double? stockQty,
     double? salePrice,
     bool? isForEdit,
     Stock? stock,
-    void Function(Stock, int, double)? onAddToCart,
+    void Function(Stock, double, double, bool)? onAddToCart,
   }) {
     showGeneralDialog(
       context: context,
@@ -97,10 +97,19 @@ class _PopupWindowState extends State<PopupWindow> {
   final _newSalePriceFormKey = GlobalKey<FormState>();
 
   late double _salePrice;
-  late int _qty;
+  late double _qty;
 
   bool isCustomSalePriceValidated = true;
   bool isQtyValidated = true;
+
+  // Helper method to format quantity display
+  String _formatQuantity(double quantity) {
+    if (quantity == quantity.toInt()) {
+      return quantity.toInt().toString();
+    } else {
+      return quantity.toString();
+    }
+  }
 
   @override
   void initState() {
@@ -115,7 +124,7 @@ class _PopupWindowState extends State<PopupWindow> {
         (widget.qty ?? (widget.stockQty == 0 ? 0 : 1)).toString();
 
     _salePrice = widget.salePrice ?? 0;
-    _qty = int.parse(_qtyController.text);
+    _qty = double.parse(_qtyController.text);
 
     // Initial validation for qty and custom sale price
     isQtyValidated = _qty > 0;
@@ -140,7 +149,7 @@ class _PopupWindowState extends State<PopupWindow> {
         child: Center(
           child: Container(
             width: 60.h,
-            height: 82.h,
+            height: 80.h,
             constraints: BoxConstraints(maxWidth: 85.w, maxHeight: 99.h),
             decoration: BoxDecoration(
                 color: AppColors.whiteColor,
@@ -159,7 +168,7 @@ class _PopupWindowState extends State<PopupWindow> {
               children: [
                 // Header (not scrollable)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(20.sp, 15.sp, 20.sp, 5.sp),
+                  padding: EdgeInsets.fromLTRB(20.sp, 13.sp, 20.sp, 0.sp),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -178,8 +187,8 @@ class _PopupWindowState extends State<PopupWindow> {
                       Container(
                         margin: EdgeInsets.only(top: 8.sp, bottom: 20.sp),
                         padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 8.sp,
+                          vertical: 2.sp,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor.withOpacity(0.1),
@@ -189,7 +198,7 @@ class _PopupWindowState extends State<PopupWindow> {
                           widget.itemCode ?? "",
                           style: AppStyling.medium12Black.copyWith(
                             color: AppColors.primaryColor,
-                            fontSize: 11.sp,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ),
@@ -247,17 +256,21 @@ class _PopupWindowState extends State<PopupWindow> {
                                       }
                                     });
                                   },
-                                  onCompleted: (){
+                                  onCompleted: () {
                                     setState(() {
                                       _qtyFormKey.currentState?.validate();
-                                      _newSalePriceFormKey.currentState?.validate();
+                                      _newSalePriceFormKey.currentState
+                                          ?.validate();
 
-                                      if((isQtyValidated &&
+                                      if ((isQtyValidated &&
                                           isCustomSalePriceValidated &&
-                                          _qty > 0)){
+                                          _qty > 0)) {
                                         if (widget.onAddToCart != null) {
                                           widget.onAddToCart!(
-                                              widget.stock!, _qty, _salePrice);
+                                              widget.stock!,
+                                              _qty,
+                                              _salePrice,
+                                              widget.isForEdit ?? true);
                                         }
                                         Navigator.pop(context);
                                       }
@@ -310,16 +323,22 @@ class _PopupWindowState extends State<PopupWindow> {
                                   label: "Qty",
                                   validator: (qty) {
                                     if (qty != null) {
-                                      if (int.parse(qty) > widget.stockQty!) {
+                                      final qtyValue = double.tryParse(qty);
+                                      if (qtyValue == null) {
+                                        setState(() {
+                                          isQtyValidated = false;
+                                        });
+                                        return 'Please enter a valid number';
+                                      } else if (qtyValue > widget.stockQty!) {
                                         setState(() {
                                           isQtyValidated = false;
                                         });
                                         return 'Not enough stock. Choose a lower quantity';
-                                      } else if (int.parse(qty) == 0) {
+                                      } else if (qtyValue <= 0) {
                                         setState(() {
                                           isQtyValidated = false;
                                         });
-                                        return 'Qty cannot be zero';
+                                        return 'Qty must be greater than zero';
                                       }
                                     } else {
                                       setState(() {
@@ -332,27 +351,31 @@ class _PopupWindowState extends State<PopupWindow> {
                                     });
                                     return null;
                                   },
-                                  textInputType: TextInputType.number,
+                                  textInputType:
+                                      TextInputType.numberWithOptions(
+                                          decimal: true),
                                   inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*\.?\d*')),
                                   ],
                                   onChanged: (value) {
                                     setState(() {
-                                      _qty = int.tryParse(value) ?? 1;
+                                      _qty = double.tryParse(value) ?? 1;
                                     });
                                     _qtyFormKey.currentState?.validate();
                                   },
-                                  onCompleted: (){
+                                  onCompleted: () {
                                     setState(() {
                                       _qtyFormKey.currentState?.validate();
-                                      _newSalePriceFormKey.currentState?.validate();
+                                      _newSalePriceFormKey.currentState
+                                          ?.validate();
 
-                                      if((isQtyValidated &&
+                                      if ((isQtyValidated &&
                                           isCustomSalePriceValidated &&
-                                          _qty > 0)){
+                                          _qty > 0)) {
                                         if (widget.onAddToCart != null) {
                                           widget.onAddToCart!(
-                                              widget.stock!, _qty, _salePrice);
+                                              widget.stock!, _qty, _salePrice, widget.isForEdit ?? true);
                                         }
                                         Navigator.pop(context);
                                       }
@@ -429,7 +452,8 @@ class _PopupWindowState extends State<PopupWindow> {
                           color: AppColors.darkGrey.withOpacity(0.15),
                           titleStyle: AppStyling.medium14Black.copyWith(
                               color: AppColors.darkGrey,
-                              fontSize: 12.sp, height: 1),
+                              fontSize: 12.sp,
+                              height: 1),
                         ),
                       ),
                       SizedBox(width: 10),
@@ -438,16 +462,24 @@ class _PopupWindowState extends State<PopupWindow> {
                           title: widget.isForEdit! ? "Save" : "Add to Cart",
                           titleStyle: AppStyling.medium14Black.copyWith(
                               color: AppColors.whiteColor,
-                              fontSize: 12.sp, height: 1),
+                              fontSize: 12.sp,
+                              height: 1),
                           isEnable: (isQtyValidated &&
                               isCustomSalePriceValidated &&
                               _qty > 0),
                           onTap: () {
-                            if (widget.onAddToCart != null) {
-                              widget.onAddToCart!(
-                                  widget.stock!, _qty, _salePrice);
+                            _qtyFormKey.currentState?.validate();
+                            _newSalePriceFormKey.currentState?.validate();
+
+                            if ((isQtyValidated &&
+                                isCustomSalePriceValidated &&
+                                _qty > 0)) {
+                              if (widget.onAddToCart != null) {
+                                widget.onAddToCart!(
+                                    widget.stock!, _qty, _salePrice, widget.isForEdit ?? true);
+                              }
+                              Navigator.pop(context);
                             }
-                            Navigator.pop(context);
                           },
                         ),
                       ),

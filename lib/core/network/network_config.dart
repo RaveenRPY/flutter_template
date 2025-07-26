@@ -7,7 +7,8 @@ const kReceiveTimeout = 5;
 class IPAddress {
   /// Replace from your IPs or Urls
   static const String QA = '147.93.157.141:9090/';
-  static const String DEV = '147.93.157.141:9090/';
+  // static const String DEV = '147.93.157.141:9090/';
+  static const String DEV = '45.79.125.85:3030/';
   static const String UAT = '147.93.157.141:9090/';
   static const String LIVE = '147.93.157.141:9090/';
 }

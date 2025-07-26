@@ -39,10 +39,10 @@ class Stock {
   final double? wholesalePrice;
   final int? retailDiscount;
   final int? wholesaleDiscount;
-  final int? qty;
+  final double? qty;
   final String? status;
   final String? statusDescription;
-  int? cartQty;
+  double? cartQty;
 
   Stock({
     this.id,

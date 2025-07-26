@@ -92,7 +92,7 @@ class _AppMainButtonState extends State<AppMainButton> {
                 ),
         onPressed: widget.isEnable! ? widget.onTap : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          padding:  EdgeInsets.symmetric(horizontal: 0, vertical: 9.sp),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

@@ -12,7 +12,8 @@ const kAppName = 'AventaPOS';
 const kDeviceChannel = 'OP';
 
 class AppConstants {
-  static String kBaseUrl = 'http://147.93.157.141:9090/';
+  // static String kBaseUrl = 'http://147.93.157.141:9090/';
+  // static String kBaseUrl = 'http://45.79.125.85/';
   static String? username;
   static String? accessToken;
   static bool IS_USER_LOGGED = false;

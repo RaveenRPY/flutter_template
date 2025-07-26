@@ -53,23 +53,26 @@ class CheckOutRequest {
 }
 
 class BillingItem {
-  final int? qty;
+  final double? qty;
   final double? salesPrice;
   final int? salesDiscount;
   final int? stock;
+  final bool? other;
 
   BillingItem({
     this.qty,
     this.salesPrice,
     this.salesDiscount,
     this.stock,
+    this.other,
   });
 
   factory BillingItem.fromJson(Map<String, dynamic> json) => BillingItem(
-    qty: json["qty"],
+    qty: double.parse(json["qty"]),
     salesPrice: json["salesPrice"],
     salesDiscount: json["salesDiscount"],
     stock: json["stock"],
+    other: json["other"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -77,5 +80,6 @@ class BillingItem {
     "salesPrice": salesPrice,
     "salesDiscount": salesDiscount,
     "stock": stock,
+    "other": other,
   };
 }

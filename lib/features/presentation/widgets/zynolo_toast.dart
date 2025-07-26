@@ -120,7 +120,7 @@ class ZynoloToast extends StatefulWidget {
           child: AlertDialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            contentPadding: const EdgeInsets.all(5),
+            contentPadding: const EdgeInsets.all(0),
             insetPadding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
             alignment: Alignment.topCenter,
             content: this,

@@ -12,7 +12,7 @@ class CartItem extends StatelessWidget {
   final String productCode;
   final double unitPrice;
   final double totalPrice;
-  final int quantity;
+  final double quantity;
   final String? productImage;
   final VoidCallback? onIncrement;
   final VoidCallback? onDecrement;
@@ -42,6 +42,15 @@ class CartItem extends StatelessWidget {
     this.onTap,
     this.isForEdit = false,
   });
+
+  // Helper method to format quantity display
+  String _formatQuantity(double quantity) {
+    if (quantity == quantity.toInt()) {
+      return quantity.toInt().toString();
+    } else {
+      return quantity.toString();
+    }
+  }
 
   // Replace _isSquareScreen with _isCompactScreen
   bool _isCompactScreen(BuildContext context) {
@@ -145,7 +154,7 @@ class CartItem extends StatelessWidget {
                     // Product Name
                     Text(
                       productName,
-                      style: AppStyling.semi12Black.copyWith(fontSize: 12),
+                      style: AppStyling.semi12Black.copyWith(fontSize: 11.sp),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -237,7 +246,7 @@ class CartItem extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    quantity.toString(),
+                                    _formatQuantity(quantity),
                                     style: AppStyling.semi12Black.copyWith(
                                       color: AppColors.darkBlue,
                                       fontSize: 11,
@@ -317,9 +326,9 @@ class CartItem extends StatelessWidget {
         ],
         border: Border.all(
           color: isSelected
-              ? AppColors.primaryColor.withOpacity(0.3)
+              ? AppColors.primaryColor.withOpacity(0.4)
               : AppColors.darkBlue.withOpacity(0.2),
-          width: isSelected ? 2 : 1,
+          width: isSelected ? 2 : 1.3,
         ),
       ),
       child: Material(
@@ -370,7 +379,7 @@ class CartItem extends StatelessWidget {
                     color: AppColors.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.primaryColor.withOpacity(0.2),
+                      color: AppColors.primaryColor.withOpacity(0.6),
                       width: 1,
                     ),
                   ),
@@ -400,6 +409,7 @@ class CartItem extends StatelessWidget {
                         productName,
                         style: AppStyling.semi12Black.copyWith(
                           height: 1.2,
+                          fontSize: 11.sp
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -517,7 +527,7 @@ class CartItem extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            quantity.toString(),
+                            _formatQuantity(quantity),
                             style: AppStyling.semi12Black.copyWith(
                               color: AppColors.darkBlue,
                               fontSize: 11,

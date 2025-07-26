@@ -60,8 +60,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
 
   final FocusNode _focusNode = FocusNode();
 
-  // List<Printer> printers = [];
-  // StreamSubscription<List<Printer>>? _devicesStreamSubscription;
+  // Add printing status tracking
+  String _printingStatus = '';
+  bool _isPrinting = false;
+  bool _printingCompleted = false;
 
   ///-----------------------------------------------------------------------------------------
   final PrinterManager _printerManager = PrinterManager.instance;
@@ -99,6 +101,126 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
     ).format(amount);
   }
 
+  // Handle printing with status updates
+  Future<void> _handlePrinting({
+    required List<Stock> itemList,
+    required String invoiceNo,
+    required DateTime invoiceDate,
+    required String cashier,
+    required String paymentType,
+    required String outlet,
+    required String total,
+    required String cash,
+    required String changes,
+  }) async {
+    setState(() {
+      _isPrinting = true;
+      _printingStatus = 'Attempting to print receipt...';
+    });
+
+    try {
+      await PrinterService.instance.printBill(
+        itemList: itemList,
+        invoiceNo: invoiceNo,
+        invoiceDate: invoiceDate,
+        cashier: cashier,
+        paymentType: paymentType,
+        outlet: outlet,
+        total: total,
+        cash: cash,
+        changes: changes,
+        isRetail: widget.params.isRetail ?? true,
+      );
+      
+      setState(() {
+        _printingStatus = 'Receipt printed successfully!';
+        _printingCompleted = true;
+      });
+    } catch (e) {
+      setState(() {
+        _printingStatus = 'Printing failed: ${e.toString()}';
+        _printingCompleted = true;
+      });
+    } finally {
+      setState(() {
+        _isPrinting = false;
+      });
+    }
+  }
+
+  // Retry printing using saved receipt data
+  Future<void> _retryPrinting() async {
+    setState(() {
+      _isPrinting = true;
+      _printingStatus = 'Retrying to print receipt...';
+      _printingCompleted = false;
+    });
+
+    try {
+      await PrinterService.instance.retryLastReceipt();
+      
+      setState(() {
+        _printingStatus = 'Receipt printed successfully!';
+        _printingCompleted = true;
+      });
+    } catch (e) {
+      setState(() {
+        _printingStatus = 'Printing failed: ${e.toString()}';
+        _printingCompleted = true;
+      });
+    } finally {
+      setState(() {
+        _isPrinting = false;
+      });
+    }
+  }
+
+  // Update stock quantities after successful sale
+  void _updateStockQuantities(List<Stock> soldItems) {
+    if (AppConstants.stockList == null) return;
+    
+    final updatedStockList = List<Stock>.from(AppConstants.stockList!);
+    log('Updating stock quantities for ${soldItems.length} items');
+    
+    for (final soldItem in soldItems) {
+      final soldQty = soldItem.cartQty ?? 0;
+      if (soldQty > 0) {
+        // Find the corresponding stock item and update its quantity
+        final stockIndex = updatedStockList.indexWhere(
+          (stock) => stock.id == soldItem.id
+        );
+        
+        if (stockIndex != -1) {
+          final currentStock = updatedStockList[stockIndex];
+          final newQty = (currentStock.qty ?? 0) - soldQty;
+          
+          log('Updated stock: ${currentStock.item?.description} - Old: ${currentStock.qty}, Sold: $soldQty, New: $newQty');
+          
+          updatedStockList[stockIndex] = Stock(
+            id: currentStock.id,
+            item: currentStock.item,
+            labelPrice: currentStock.labelPrice,
+            itemCost: currentStock.itemCost,
+            retailPrice: currentStock.retailPrice,
+            wholesalePrice: currentStock.wholesalePrice,
+            retailDiscount: currentStock.retailDiscount,
+            wholesaleDiscount: currentStock.wholesaleDiscount,
+            qty: newQty,
+            status: currentStock.status,
+            statusDescription: currentStock.statusDescription,
+            cartQty: currentStock.cartQty,
+          );
+        } else {
+          log('Stock item not found for ID: ${soldItem.id}');
+        }
+      }
+    }
+    
+    // Update the global stock list
+    AppConstants.stockList = updatedStockList;
+    log('Stock list updated successfully. Total items: ${AppConstants.stockList?.length}');
+  }
+
   @override
   void dispose() {
     // _customerPaidController.dispose();
@@ -106,13 +228,18 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
   }
 
   List<BillingItem> convertStockToBillingItems(List<Stock> stocks) {
+
     return stocks
-        .map((stock) => BillingItem(
+        .map((stock) {
+          log((stock.item?.code == "ITEM_1459").toString());
+          return BillingItem(
               qty: stock.cartQty ?? stock.qty,
               salesPrice: stock.retailPrice,
               salesDiscount: 0,
               stock: stock.id,
-            ))
+              other: stock.item?.code == "ITEM_1459",
+            );
+        })
         .toList();
   }
 
@@ -214,7 +341,9 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               invoiceData.cash = _formatCurrency(_customerPaid);
               invoiceData.changes = _formatCurrency(change);
             });
-            await PrinterService.instance.printBill(
+
+            // Handle printing in background without blocking checkout
+            _handlePrinting(
               itemList: itemList,
               invoiceNo: state.response?.invoiceNumber ?? '',
               invoiceDate: state.response?.invoiceDate ?? DateTime.now(),
@@ -224,8 +353,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               total: grandTotal.toString(),
               cash: _customerPaid.toString(),
               changes: change.toString(),
-              isRetail: widget.params.isRetail ?? true,
             );
+
+            // Update stock quantities after successful sale
+            _updateStockQuantities(itemList);
 
             ZynoloToast(
               title: state.msg,
@@ -236,8 +367,10 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
               backgroundColor: AppColors.whiteColor.withOpacity(1),
             ).show(context);
 
-
-
+            // Show printing status dialog
+            if (_printingCompleted) {
+              // _showPrintingStatusDialog();
+            }
             await Future.delayed(Duration(seconds: 2), () {
               setState(() {
                 widget.params.onPop!(true);
@@ -296,6 +429,84 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                     "Proceed Payment",
                     style: AppStyling.medium16Black,
                   ),
+                  // Add printing status indicator
+                  if (_printingStatus.isNotEmpty) ...[
+                    Spacer(),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 6.sp),
+                      decoration: BoxDecoration(
+                        color: _printingCompleted 
+                            ? (_printingStatus.contains('successfully') 
+                                ? AppColors.lightGreen.withOpacity(0.2)
+                                : AppColors.red.withOpacity(0.2))
+                            : AppColors.primaryColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _printingCompleted 
+                              ? (_printingStatus.contains('successfully') 
+                                  ? AppColors.lightGreen
+                                  : AppColors.red)
+                              : AppColors.primaryColor,
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_isPrinting)
+                            SizedBox(
+                              width: 12.sp,
+                              height: 12.sp,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _printingCompleted 
+                                      ? (_printingStatus.contains('successfully') 
+                                          ? AppColors.lightGreen
+                                          : AppColors.red)
+                                      : AppColors.primaryColor,
+                                ),
+                              ),
+                            ),
+                          if (_isPrinting) SizedBox(width: 6.sp),
+                          Text(
+                            _printingStatus,
+                            style: AppStyling.medium12Black.copyWith(
+                              fontSize: 10.sp,
+                              color: _printingCompleted 
+                                  ? (_printingStatus.contains('successfully') 
+                                      ? AppColors.lightGreen
+                                      : AppColors.red)
+                                  : AppColors.primaryColor,
+                            ),
+                          ),
+                          // Add retry button for failed printing
+                          if (_printingCompleted && !_printingStatus.contains('successfully')) ...[
+                            SizedBox(width: 8.sp),
+                            GestureDetector(
+                              onTap: () {
+                                _retryPrinting();
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 6.sp, vertical: 2.sp),
+                                decoration: BoxDecoration(
+                                  color: AppColors.red,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Retry',
+                                  style: AppStyling.medium12Black.copyWith(
+                                    fontSize: 8.sp,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
               SizedBox(
@@ -463,40 +674,6 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
                               children: [
                                 Expanded(
                                   child: AppMainButton(
-                                    title: 'Cancel',
-                                    isNegative: true,
-                                    color: AppColors.darkGrey.withOpacity(0.15),
-                                    titleStyle: AppStyling.medium14Black
-                                        .copyWith(
-                                            color: AppColors.darkGrey,
-                                            fontSize: 11.5.sp,
-                                            height: 1),
-                                    onTap: () {
-                                      AppDialogBox.show(
-                                        context,
-                                        title: 'Cancel Payment',
-                                        message:
-                                            'Are you sure you want to cancel the payment ?',
-                                        image: AppImages.failedDialog,
-                                        negativeButtonText: 'No',
-                                        negativeButtonTap: () {
-                                          // Do nothing, just close the dialog
-                                        },
-                                        positiveButtonText: 'Yes',
-                                        positiveButtonTap: () {
-                                          setState(() {
-                                            widget.params.onPop!(true);
-                                          });
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Expanded(
-                                  child: AppMainButton(
                                     title: 'Complete Payment',
                                     titleStyle: AppStyling.medium14Black
                                         .copyWith(
@@ -543,6 +720,33 @@ class _ProcessPaymentViewState extends BaseViewState<ProcessPaymentView> {
           ),
         ),
       ),
+    );
+  }
+
+  // Show printing status dialog
+  void _showPrintingStatusDialog() {
+    if (!_printingCompleted) return;
+    
+    final isSuccess = _printingStatus.contains('successfully');
+    final title = isSuccess ? 'Printing Successful' : 'Printing Failed';
+    final message = isSuccess 
+        ? 'Receipt has been printed successfully.'
+        : 'Receipt printing failed. You can retry printing from the settings.';
+    final image = isSuccess ? AppImages.successDialog : AppImages.failedDialog;
+    
+    AppDialogBox.show(
+      context,
+      title: title,
+      message: message,
+      image: image,
+      isTwoButton: !isSuccess, // Show two buttons only for failure
+      negativeButtonText: isSuccess ? null : 'Retry',
+      negativeButtonTap: isSuccess ? null : () {
+        // Retry printing
+        _retryPrinting();
+      },
+      positiveButtonText: 'OK',
+      positiveButtonTap: () {},
     );
   }
 

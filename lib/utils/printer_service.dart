@@ -15,6 +15,9 @@ class PrinterService {
   List<PrinterDevice> _devices = [];
   PrinterDevice? _selectedPrinter;
 
+  // Store last receipt data for retry
+  Map<String, dynamic>? _lastReceiptData;
+
   // Discover USB printers
   Future<List<PrinterDevice>> discoverUsbPrinters() async {
     _devices = [];
@@ -41,6 +44,59 @@ class PrinterService {
     _selectedPrinter = device;
   }
 
+  // Save receipt data for later printing
+  void saveReceiptData({
+    required List<Stock> itemList,
+    required String invoiceNo,
+    required DateTime invoiceDate,
+    required String cashier,
+    required String paymentType,
+    required String outlet,
+    required String total,
+    required String cash,
+    required String changes,
+    required bool isRetail,
+  }) {
+    _lastReceiptData = {
+      'itemList': itemList,
+      'invoiceNo': invoiceNo,
+      'invoiceDate': invoiceDate,
+      'cashier': cashier,
+      'paymentType': paymentType,
+      'outlet': outlet,
+      'total': total,
+      'cash': cash,
+      'changes': changes,
+      'isRetail': isRetail,
+      'timestamp': DateTime.now(),
+    };
+  }
+
+  // Get last receipt data
+  Map<String, dynamic>? getLastReceiptData() {
+    return _lastReceiptData;
+  }
+
+  // Retry printing last receipt
+  Future<void> retryLastReceipt() async {
+    if (_lastReceiptData == null) {
+      throw Exception('No receipt data available for retry');
+    }
+    
+    await printBill(
+      itemList: _lastReceiptData!['itemList'],
+      invoiceNo: _lastReceiptData!['invoiceNo'],
+      invoiceDate: _lastReceiptData!['invoiceDate'],
+      cashier: _lastReceiptData!['cashier'],
+      paymentType: _lastReceiptData!['paymentType'],
+      outlet: _lastReceiptData!['outlet'],
+      total: _lastReceiptData!['total'],
+      cash: _lastReceiptData!['cash'],
+      changes: _lastReceiptData!['changes'],
+      isRetail: _lastReceiptData!['isRetail'],
+    );
+  }
+
   // Print a bill (receipt)
   Future<void> printBill({
     required List<Stock> itemList,
@@ -54,10 +110,8 @@ class PrinterService {
     required String changes,
     required bool isRetail,
   }) async {
-    if (_selectedPrinter == null) {
-      throw Exception('No printer selected');
-    }
-    final bytes = await generateReceipt(
+    // Save receipt data for potential retry
+    saveReceiptData(
       itemList: itemList,
       invoiceNo: invoiceNo,
       invoiceDate: invoiceDate,
@@ -69,7 +123,43 @@ class PrinterService {
       changes: changes,
       isRetail: isRetail,
     );
-    await _printerManager.send(type: PrinterType.usb, bytes: bytes);
+
+    if (_selectedPrinter == null) {
+      // Try to discover and connect to a printer if none is selected
+      try {
+        final printers = await discoverUsbPrinters();
+        if (printers.isNotEmpty) {
+          await connectUsbPrinter(printers[0]);
+        } else {
+          throw Exception('No USB printers found. Please connect a printer and try again.');
+        }
+      } catch (e) {
+        throw Exception('Failed to connect to printer: ${e.toString()}');
+      }
+    }
+
+    if (_selectedPrinter == null) {
+      throw Exception('No printer selected or connected');
+    }
+
+    try {
+      final bytes = await generateReceipt(
+        itemList: itemList,
+        invoiceNo: invoiceNo,
+        invoiceDate: invoiceDate,
+        cashier: cashier,
+        paymentType: paymentType,
+        outlet: outlet,
+        total: total,
+        cash: cash,
+        changes: changes,
+        isRetail: isRetail,
+      );
+      
+      await _printerManager.send(type: PrinterType.usb, bytes: bytes);
+    } catch (e) {
+      throw Exception('Failed to print receipt: ${e.toString()}');
+    }
   }
 
   // Open cash drawer
